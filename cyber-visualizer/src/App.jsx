@@ -76,9 +76,7 @@ function App() {
                   PRO
                 </span>
               </div>
-              <div className="hidden sm:block text-[10px] text-slate-500 uppercase tracking-widest">
-                G.V. Acharya Institute of Eng. & Tech.
-              </div>
+            
             </div>
           </div>
 
@@ -159,3 +157,4 @@ function App() {
 }
 
 export default App;
+
