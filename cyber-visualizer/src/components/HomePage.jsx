@@ -402,7 +402,7 @@ const HomePage = ({ setIsModalOpen }) => {
 
       </motion.div>
 
-      {/* CHANGED: POPUP MODAL - Adjusted for NATIVE FULL-SCREEN MOBILE FEEL */}
+      {/* POPUP MODAL */}
       <AnimatePresence>
         {result && modalData && (
           <motion.div 
@@ -414,26 +414,34 @@ const HomePage = ({ setIsModalOpen }) => {
               className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
               
-              {/* Sticky Header inside Modal */}
-              <div className="flex-none flex flex-wrap gap-3 justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md">
-                <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 w-[70%] sm:w-auto overflow-hidden">
-                  <span className="whitespace-nowrap">Scan Results &ndash;</span> 
-                  <span className="text-slate-300 font-medium truncate sm:break-all">{result.queryId}</span>
-                </h2>
-                <div className="flex items-center gap-2 sm:gap-4 justify-end">
-                  {!modalData.isSafe ? (
-                    <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950 text-red-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
-                      THREAT DETECTED
-                    </motion.span>
-                  ) : (
-                    <span className="text-[9px] sm:text-[10px] bg-emerald-950 text-emerald-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-emerald-500/30">
-                      SYSTEM SAFE
-                    </span>
-                  )}
-                  <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0">
-                    <X size={16} />
-                  </motion.button>
+              {/* CHANGED: Sticky Header with separate left/right alignment */}
+              <div className="flex-none flex justify-between items-start px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md gap-3">
+                
+                {/* Title & Badge Column (Left Side) */}
+                <div className="flex flex-col gap-2.5 min-w-0">
+                  <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide">
+                    <span className="whitespace-nowrap">Scan Results &ndash;</span>{" "}
+                    <span className="text-slate-300 font-medium break-all">{result.queryId}</span>
+                  </h2>
+                  
+                  {/* Status Badge */}
+                  <div className="flex items-center">
+                    {!modalData.isSafe ? (
+                      <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950 text-red-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                        THREAT DETECTED
+                      </motion.span>
+                    ) : (
+                      <span className="text-[9px] sm:text-[10px] bg-emerald-950 text-emerald-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-emerald-500/30">
+                        SYSTEM SAFE
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                {/* Close Button pinned to top right (Right Side) */}
+                <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0 mt-0.5">
+                  <X size={16} />
+                </motion.button>
               </div>
 
               <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
