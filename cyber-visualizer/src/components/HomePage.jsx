@@ -93,7 +93,8 @@ const HomePage = () => {
       let data;
 
       if (mode === "API") {
-        response = await fetch("http://localhost:5000/api/scan", {
+        // CHANGED: Using API_BASE_URL instead of http://localhost:5000
+        response = await fetch(`${API_BASE_URL}/api/scan`, {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier: currentQuery, type })
         });
         data = await response.json();
@@ -101,7 +102,8 @@ const HomePage = () => {
         finalResultData = { ...data, scanType: type, queryId: currentQuery };
         setResult(finalResultData);
       } else {
-        response = await fetch(`http://localhost:5000/api/attacks/search?query=${currentQuery}`);
+        // CHANGED: Using API_BASE_URL instead of http://localhost:5000
+        response = await fetch(`${API_BASE_URL}/api/attacks/search?query=${currentQuery}`);
         data = await response.json();
 
         if (!data || data.length === 0 || data[0].status?.toLowerCase() === "safe") {
