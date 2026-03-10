@@ -30,14 +30,12 @@ const preventionMethods = {
   URL: ["Do not enter any personal credentials on this domain.", "Report the malicious URL to Google Safe Browsing.", "Ensure browser web-protection is enabled.", "Clear browser cache, cookies, and history."]
 };
 
-// CHANGED: Accept setIsModalOpen as a prop
 export default function DashboardPage({ setIsModalOpen }) {
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({ total: 0, exposed: 0, safe: 0, riskScore: 100, typeData: [], timelineData: [] });
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  // CHANGED: Trigger App nav hiding when a record is selected
   useEffect(() => {
     if (setIsModalOpen) {
       setIsModalOpen(!!selectedRecord);
@@ -136,6 +134,9 @@ export default function DashboardPage({ setIsModalOpen }) {
 
   if (!user) return null;
 
+  // Extract a display name (use name, or first part of email, or fallback)
+  const displayName = user.name || (user.email ? user.email.split('@')[0] : "PERSONALIZED");
+
   const gaugeRadius = 40;
   const gaugeCircumference = 2 * Math.PI * gaugeRadius;
   const gaugeOffset = gaugeCircumference - (stats.riskScore / 100) * gaugeCircumference;
@@ -144,22 +145,19 @@ export default function DashboardPage({ setIsModalOpen }) {
   return (
     <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 w-full flex flex-col px-4 md:px-8 py-4 md:py-6 overflow-y-auto relative z-10 custom-scrollbar font-sans text-slate-300">
       
-      {/* HEADER: Adjusted text sizes for mobile */}
-      <motion.div variants={itemVars} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8 border-b border-slate-800/80 pb-6 relative">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-widest drop-shadow-md">
-              INTELLIGENCE <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">NEXUS</span>
-            </h1>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] md:text-[10px] font-bold text-emerald-400 tracking-widest animate-pulse">
-              <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-emerald-400" /> LIVE
-            </span>
-          </div>
-          <p className="text-slate-400 text-xs md:text-sm tracking-wide font-medium">Encrypted Local Telemetry & Threat Footprint</p>
+      {/* HEADER */}
+      <motion.div variants={itemVars} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8 border-b border-slate-800/80 pb-4 relative">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-widest drop-shadow-md uppercase">
+            {displayName}'S <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">DASHBOARD</span>
+          </h1>
+          <span className="flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] md:text-[10px] font-bold text-emerald-400 tracking-widest animate-pulse">
+            <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-emerald-400" /> LIVE
+          </span>
         </div>
       </motion.div>
 
-      {/* TOP ROW: PROFILE & QUICK STATS - Stacks on mobile */}
+      {/* TOP ROW: PROFILE & QUICK STATS */}
       <motion.div variants={itemVars} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 md:gap-6 mb-8">
         
         {/* User Card */}
@@ -206,7 +204,7 @@ export default function DashboardPage({ setIsModalOpen }) {
           </p>
         </div>
 
-        {/* Action Metrics - Stacks or stays half-width */}
+        {/* Action Metrics */}
         <div className={`${glassPanel} sm:col-span-2 md:col-span-4 flex flex-col justify-center`}>
           <div className="flex items-center gap-2 mb-4 md:mb-5 border-b border-slate-700/50 pb-3">
             <Crosshair size={14} className="text-cyan-400"/> 
@@ -334,7 +332,7 @@ export default function DashboardPage({ setIsModalOpen }) {
         </div>
       </motion.div>
 
-      {/* BOTTOM ROW: ADVANCED HISTORY LEDGER - Horizontal scroll for mobile */}
+      {/* BOTTOM ROW: ADVANCED HISTORY LEDGER - Card layout on Mobile, Table on Desktop */}
       <motion.div variants={itemVars} className={`${glassPanel} overflow-hidden flex flex-col flex-1 min-h-[350px]`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 border-b border-slate-700/50 pb-4 gap-3">
           <div>
@@ -347,7 +345,7 @@ export default function DashboardPage({ setIsModalOpen }) {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleClearHistory}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-[9px] font-bold text-red-400 border border-red-500/40 rounded-lg bg-red-950/30 uppercase"
+              className="flex items-center justify-center gap-2 px-3 py-2 text-[9px] font-bold text-red-400 border border-red-500/40 rounded-lg bg-red-950/30 uppercase shrink-0"
             >
               <Trash2 size={12} /> Purge Records
             </motion.button>
@@ -355,53 +353,97 @@ export default function DashboardPage({ setIsModalOpen }) {
         </div>
         
         {history.length > 0 ? (
-          <div className="overflow-x-auto -mx-4 px-4 flex-1 custom-scrollbar">
-            <table className="w-full text-left text-sm border-collapse min-w-[650px]">
-              <thead className="text-slate-500 uppercase tracking-widest text-[9px] bg-slate-950/50 sticky top-0 z-10 backdrop-blur-md">
-                <tr>
-                  <th className="px-4 py-3 font-bold">Timestamp</th>
-                  <th className="px-4 py-3 font-bold">Target</th>
-                  <th className="px-4 py-3 font-bold text-center">Vector</th>
-                  <th className="px-4 py-3 font-bold text-right">Resolution</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/40">
-                <AnimatePresence>
-                  {history.map((record) => (
-                    <motion.tr 
-                      key={record.id}
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className="hover:bg-slate-800/20 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-slate-500 whitespace-nowrap text-[10px] font-mono">
+          <>
+            {/* MOBILE VIEW (Stacked Cards) */}
+            <div className="md:hidden flex flex-col space-y-3 pb-2">
+              <AnimatePresence>
+                {history.map((record) => (
+                  <motion.div 
+                    key={record.id}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="bg-slate-800/40 p-3.5 rounded-xl border border-slate-700/50 flex flex-col gap-2.5"
+                  >
+                    <div className="flex justify-between items-center border-b border-slate-700/50 pb-2.5">
+                      <span className="text-[10px] text-slate-500 font-mono">
                         {formatDate(record.timestamp)}
-                      </td>
-                      <td className="px-4 py-3 text-slate-200 text-xs font-medium">
-                        <div className="truncate max-w-[150px]">{record.query}</div>
-                        {record.status === "Exposed" && <p className="text-[9px] text-slate-500 truncate max-w-[150px]">{record.breachName}</p>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-2 bg-slate-900/60 w-max mx-auto px-2 py-1 rounded border border-slate-800">
-                          {getTypeIcon(record.type)}
-                          <span className="text-[9px] font-bold tracking-widest text-slate-400">{record.type}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => setSelectedRecord(record)}
-                          className={`px-2 py-1 rounded text-[8px] font-black tracking-widest border uppercase inline-flex items-center gap-1.5 ${
-                            record.status === "Exposed" ? "text-red-400 border-red-500/30 bg-red-950/20" : "text-emerald-400 border-emerald-500/20 bg-emerald-950/10"
-                          }`}
-                        >
-                          {record.status === "Exposed" ? "THREAT" : "CLEARED"}
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
+                      </span>
+                      <div className="flex items-center gap-1.5 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-800">
+                        {getTypeIcon(record.type)}
+                        <span className="text-[9px] font-bold tracking-widest text-slate-400">{record.type}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center pt-0.5">
+                      <div className="min-w-0 flex-1 pr-3">
+                        <div className="text-xs font-bold text-slate-200 truncate">{record.query}</div>
+                        {record.status === "Exposed" && (
+                          <p className="text-[9px] text-red-400 truncate mt-0.5">{record.breachName}</p>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={() => setSelectedRecord(record)}
+                        className={`px-2.5 py-1.5 rounded text-[9px] font-black tracking-widest border uppercase shrink-0 flex items-center gap-1 ${
+                          record.status === "Exposed" ? "text-red-400 border-red-500/30 bg-red-950/20" : "text-emerald-400 border-emerald-500/20 bg-emerald-950/10"
+                        }`}
+                      >
+                        {record.status === "Exposed" ? "THREAT" : "CLEARED"}
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* DESKTOP VIEW (Standard Table) */}
+            <div className="hidden md:block overflow-x-auto -mx-4 px-4 flex-1 custom-scrollbar">
+              <table className="w-full text-left text-sm border-collapse min-w-[650px]">
+                <thead className="text-slate-500 uppercase tracking-widest text-[9px] bg-slate-950/50 sticky top-0 z-10 backdrop-blur-md">
+                  <tr>
+                    <th className="px-4 py-3 font-bold">Timestamp</th>
+                    <th className="px-4 py-3 font-bold">Target</th>
+                    <th className="px-4 py-3 font-bold text-center">Vector</th>
+                    <th className="px-4 py-3 font-bold text-right">Resolution</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/40">
+                  <AnimatePresence>
+                    {history.map((record) => (
+                      <motion.tr 
+                        key={record.id}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        className="hover:bg-slate-800/20 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-slate-500 whitespace-nowrap text-[10px] font-mono">
+                          {formatDate(record.timestamp)}
+                        </td>
+                        <td className="px-4 py-3 text-slate-200 text-xs font-medium">
+                          <div className="truncate max-w-[200px]">{record.query}</div>
+                          {record.status === "Exposed" && <p className="text-[9px] text-slate-500 truncate max-w-[200px]">{record.breachName}</p>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-2 bg-slate-900/60 w-max mx-auto px-2 py-1 rounded border border-slate-800">
+                            {getTypeIcon(record.type)}
+                            <span className="text-[9px] font-bold tracking-widest text-slate-400">{record.type}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => setSelectedRecord(record)}
+                            className={`px-2 py-1 rounded text-[8px] font-black tracking-widest border uppercase inline-flex items-center gap-1.5 ${
+                              record.status === "Exposed" ? "text-red-400 border-red-500/30 bg-red-950/20" : "text-emerald-400 border-emerald-500/20 bg-emerald-950/10"
+                            }`}
+                          >
+                            {record.status === "Exposed" ? "THREAT" : "CLEARED"}
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center py-10 text-slate-600 bg-slate-950/20 rounded-xl border border-dashed border-slate-800 mt-2">
             <Shield size={24} className="mb-2 opacity-20" />
@@ -410,7 +452,7 @@ export default function DashboardPage({ setIsModalOpen }) {
         )}
       </motion.div>
 
-      {/* CHANGED: HISTORY MODAL - Scaled for native full-screen mobile viewports */}
+      {/* HISTORY MODAL */}
       <AnimatePresence>
         {selectedRecord && modalData && (
           <motion.div 
