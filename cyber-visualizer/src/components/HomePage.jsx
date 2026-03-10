@@ -391,7 +391,7 @@ const HomePage = ({ setIsModalOpen }) => {
         {/* Footer Area */}
         <motion.footer variants={itemVars} className="mt-10 sm:mt-14 mb-4 border-t border-slate-800/60 pt-6 sm:pt-8 pb-4 text-center max-w-5xl w-full mx-auto px-2">
           <p className="text-slate-500 text-[10px] sm:text-xs mb-3 sm:mb-4 font-semibold tracking-widest uppercase">
-            Development Team: Fardeen Akmal | Jigisha Naidu | Sushil Nirmal | Suvajit Ghosh
+                                      Developer: Fardeen Akmal
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4 text-[8px] sm:text-[9px] text-slate-600 font-mono tracking-widest uppercase">
             <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">DPDP Act 2023 Compliant</span>
@@ -514,3 +514,4 @@ const HomePage = ({ setIsModalOpen }) => {
 };
 
 export default HomePage;
+
