@@ -19,13 +19,21 @@ import {
   Crosshair
 } from "lucide-react";
 
-const HomePage = () => {
+// CHANGED: Added setIsModalOpen to the props
+const HomePage = ({ setIsModalOpen }) => {
   const [mode, setMode] = useState("API");
   const [identifier, setIdentifier] = useState("");
   const [type, setType] = useState("EMAIL");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // CHANGED: Tell the App component to hide/show the header when result changes
+  useEffect(() => {
+    if (setIsModalOpen) {
+      setIsModalOpen(!!result);
+    }
+  }, [result, setIsModalOpen]);
 
   const scanTypes = [
     { id: "EMAIL", label: "Email", icon: <Mail size={18} className="sm:w-5 sm:h-5" /> },
@@ -394,24 +402,25 @@ const HomePage = () => {
 
       </motion.div>
 
-      {/* POPUP MODAL */}
+      {/* CHANGED: POPUP MODAL - Adjusted for NATIVE FULL-SCREEN MOBILE FEEL */}
       <AnimatePresence>
         {result && modalData && (
           <motion.div 
             initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(8px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#020617]/80 p-3 sm:p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#020617]/90 sm:bg-[#020617]/80 sm:p-4"
           >
             <motion.div 
               initial={{ scale: 0.95, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} transition={{ type: "spring", stiffness: 350, damping: 25 }}
-              className={`w-full max-w-4xl bg-[#0f172a]/95 backdrop-blur-3xl border rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] ${modalData.isSafe ? 'border-emerald-500/30' : 'border-red-500/30'}`}
+              className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
               
-              <div className="flex-none flex flex-wrap gap-3 justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/50">
-                <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 w-full sm:w-auto overflow-hidden">
+              {/* Sticky Header inside Modal */}
+              <div className="flex-none flex flex-wrap gap-3 justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md">
+                <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 w-[70%] sm:w-auto overflow-hidden">
                   <span className="whitespace-nowrap">Scan Results &ndash;</span> 
-                  <span className="text-slate-300 font-medium truncate sm:break-all max-w-[200px] sm:max-w-none">{result.queryId}</span>
+                  <span className="text-slate-300 font-medium truncate sm:break-all">{result.queryId}</span>
                 </h2>
-                <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex items-center gap-2 sm:gap-4 justify-end">
                   {!modalData.isSafe ? (
                     <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950 text-red-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
                       THREAT DETECTED
@@ -427,9 +436,10 @@ const HomePage = () => {
                 </div>
               </div>
 
-              <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+              <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                  {/* Risk Gauge */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center relative shadow-inner">
                     <h3 className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</h3>
                     <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6 flex items-end justify-center">
@@ -448,6 +458,7 @@ const HomePage = () => {
                     </div>
                   </motion.div>
 
+                  {/* Identifier List */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 shadow-inner">
                     <ul className="space-y-3 sm:space-y-4">
                       <li className="flex items-center text-[10px] sm:text-xs"><User size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Identifier:</span><span className="text-white font-medium truncate">{result.queryId}</span></li>
@@ -458,6 +469,7 @@ const HomePage = () => {
                     </ul>
                   </motion.div>
 
+                  {/* Compromised Data Container */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col shadow-inner">
                     <h3 className="text-[10px] sm:text-xs font-semibold text-slate-300 mb-3 sm:mb-4">Compromised Data:</h3>
                     <motion.div variants={containerVars} className="space-y-2 sm:space-y-3 overflow-y-auto pr-1 custom-scrollbar max-h-32 md:max-h-none">
@@ -471,6 +483,7 @@ const HomePage = () => {
                   </motion.div>
                 </div>
 
+                {/* Recommendations */}
                 <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`border rounded-xl p-4 sm:p-5 shadow-inner ${modalData.isSafe ? 'bg-emerald-950/20 border-emerald-500/20' : 'bg-red-950/20 border-red-500/20'}`}>
                   <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 tracking-wide ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Recommended Actions</h3>
                   <motion.div variants={containerVars} className="space-y-1.5 pl-1 sm:pl-2">
