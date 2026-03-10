@@ -1,4 +1,4 @@
-# 🛡️ Cyber Attack Visualizer
+ # 🛡️ Cyber Attack Visualizer
 
 <p align="center">
 <img src="https://img.shields.io/badge/Cybersecurity-Threat%20Intelligence-red?style=for-the-badge">
@@ -96,7 +96,6 @@ SQLite Database
 
 ```bash
 git clone https://github.com/CoodingN00b7/ECIBP-PRO.git
-cd cyber-attack-visualizer
 ```
 
 ### Install Dependencies
@@ -151,7 +150,6 @@ npm run dev
 # ⚠️ Disclaimer
 
 This project is built **for educational and research purposes only**.
-Do not use it to analyze or scan data without authorization.
 
 ---
 
