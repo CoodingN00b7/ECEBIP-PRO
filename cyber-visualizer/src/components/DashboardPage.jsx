@@ -30,11 +30,19 @@ const preventionMethods = {
   URL: ["Do not enter any personal credentials on this domain.", "Report the malicious URL to Google Safe Browsing.", "Ensure browser web-protection is enabled.", "Clear browser cache, cookies, and history."]
 };
 
-export default function DashboardPage() {
+// CHANGED: Accept setIsModalOpen as a prop
+export default function DashboardPage({ setIsModalOpen }) {
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({ total: 0, exposed: 0, safe: 0, riskScore: 100, typeData: [], timelineData: [] });
   const [selectedRecord, setSelectedRecord] = useState(null);
+
+  // CHANGED: Trigger App nav hiding when a record is selected
+  useEffect(() => {
+    if (setIsModalOpen) {
+      setIsModalOpen(!!selectedRecord);
+    }
+  }, [selectedRecord, setIsModalOpen]);
 
   const loadUserData = () => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -402,75 +410,89 @@ export default function DashboardPage() {
         )}
       </motion.div>
 
-      {/* HISTORY MODAL: Scaled for mobile viewports */}
+      {/* CHANGED: HISTORY MODAL - Scaled for native full-screen mobile viewports */}
       <AnimatePresence>
         {selectedRecord && modalData && (
           <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#020617]/90 p-3 sm:p-4 backdrop-blur-sm"
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(8px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#020617]/90 sm:bg-[#020617]/80 sm:p-4"
           >
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className={`w-full max-w-4xl bg-[#0f172a] border rounded-2xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden ${modalData.isSafe ? 'border-emerald-500/30' : 'border-red-500/30'}`}
+              initial={{ scale: 0.95, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
-              <div className="flex justify-between items-center px-4 py-3 border-b border-slate-800 bg-slate-900/50">
-                <h2 className="text-[10px] md:text-sm font-bold text-white uppercase tracking-wider truncate mr-4">
-                  Record: {selectedRecord.query}
+              
+              {/* Sticky Header inside Modal */}
+              <div className="flex-none flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md">
+                <h2 className="text-[10px] sm:text-sm font-bold text-white tracking-wide flex items-center gap-1 sm:gap-2 w-[80%] sm:w-auto overflow-hidden">
+                  <span className="whitespace-nowrap uppercase text-slate-400">Record:</span> 
+                  <span className="truncate">{selectedRecord.query}</span>
                 </h2>
-                <button onClick={closeModal} className="text-slate-500 hover:text-white transition-colors p-1 bg-slate-800 rounded-full">
-                  <X size={14} />
-                </button>
+                <div className="flex items-center justify-end">
+                  <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 sm:p-2 flex-shrink-0">
+                    <X size={16} />
+                  </motion.button>
+                </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                  
                   {/* Risk Profile Card */}
-                  <div className="bg-slate-950/40 border border-slate-800 p-4 rounded-xl flex flex-col items-center">
-                    <span className="text-[9px] font-bold text-slate-500 uppercase mb-4 w-full">Risk Profile</span>
-                    <div className="relative w-24 h-12 flex items-end justify-center mb-2">
-                      <svg viewBox="0 0 100 50" className="w-full h-full">
-                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="6" strokeLinecap="round" />
+                  <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl flex flex-col items-center justify-center relative shadow-inner">
+                    <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</span>
+                    <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6 flex items-end justify-center">
+                      <svg viewBox="0 0 100 50" className="w-full h-full overflow-visible">
+                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
                         <motion.path 
-                          initial={{ strokeDashoffset: 125.6 }} animate={{ strokeDashoffset: 125.6 - (modalData.score / 100) * 125.6 }}
-                          d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modalData.gaugeColor} strokeWidth="6" strokeLinecap="round" strokeDasharray={125.6}
+                          initial={{ strokeDashoffset: 125.6 }} animate={{ strokeDashoffset: 125.6 - (modalData.score / 100) * 125.6 }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                          d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modalData.gaugeColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={125.6}
                         />
                       </svg>
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="absolute bottom-0 w-2 h-2 sm:w-3 sm:h-3 bg-slate-300 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
                     </div>
-                    <p className={`text-sm font-black tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel} ({modalData.score}/100)</p>
+                    <div className="text-center mt-3 sm:mt-4">
+                      <p className={`text-base sm:text-lg font-bold tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
+                      <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">({modalData.score}/100)</p>
+                    </div>
                   </div>
 
                   {/* Metadata Card */}
-                  <div className="bg-slate-950/40 border border-slate-800 p-4 rounded-xl">
-                    <ul className="space-y-2.5">
-                      <li className="flex justify-between text-[10px]"><span className="text-slate-500 uppercase">Type</span><span className="text-white font-bold">{selectedRecord.type}</span></li>
-                      <li className="flex justify-between text-[10px]"><span className="text-slate-500 uppercase">Source</span><span className="text-slate-200 truncate ml-2">{modalData.source}</span></li>
-                      <li className="flex flex-col text-[10px] pt-1"><span className="text-slate-500 uppercase mb-1">Breach Event</span><span className="text-red-400 font-bold leading-tight">{modalData.breachName}</span></li>
+                  <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl shadow-inner flex flex-col justify-center">
+                    <ul className="space-y-3 sm:space-y-4">
+                      <li className="flex items-center text-[10px] sm:text-xs"><Filter size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Type:</span><span className="text-white font-bold">{selectedRecord.type}</span></li>
+                      <li className="flex items-center text-[10px] sm:text-xs"><Globe size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Source:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.source}</span></li>
+                      <li className="flex items-center text-[10px] sm:text-xs"><AlertTriangle size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Breach Event:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.breachName}</span></li>
                     </ul>
                   </div>
 
                   {/* Compromised List */}
-                  <div className="bg-slate-950/40 border border-slate-800 p-4 rounded-xl">
-                    <h3 className="text-[9px] font-bold text-slate-500 uppercase mb-3">Leak Contents</h3>
-                    <div className="flex flex-wrap gap-1.5">
+                  <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl shadow-inner flex flex-col">
+                    <h3 className="text-[10px] sm:text-xs font-semibold text-slate-300 mb-3 sm:mb-4">Leak Contents:</h3>
+                    <div className="space-y-2 sm:space-y-3 overflow-y-auto pr-1 custom-scrollbar max-h-32 md:max-h-none">
                       {modalData.compromisedList.map((item, idx) => (
-                        <span key={idx} className="text-[9px] px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-300">{item}</span>
+                        <div key={idx} className={`flex items-center gap-2 sm:gap-3 bg-slate-800/50 border p-2 sm:p-3 rounded-lg transition-colors ${modalData.isSafe ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
+                          <LayoutTemplate size={12} className={`flex-shrink-0 sm:w-3.5 sm:h-3.5 ${modalData.isSafe ? "text-emerald-400" : "text-red-400"}`} />
+                          <span className="text-slate-200 text-xs sm:text-sm font-medium">{item}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
                 </div>
 
                 {/* Recommendations */}
-                <div className={`p-4 rounded-xl border ${modalData.isSafe ? 'bg-emerald-950/10 border-emerald-500/20' : 'bg-red-950/10 border-red-500/20'}`}>
-                  <h3 className={`text-[10px] font-bold mb-3 uppercase tracking-wider ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Recommended Countermeasures</h3>
-                  <div className="space-y-2">
+                <div className={`p-4 sm:p-5 rounded-xl shadow-inner border ${modalData.isSafe ? 'bg-emerald-950/20 border-emerald-500/20' : 'bg-red-950/20 border-red-500/20'}`}>
+                  <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 tracking-wide uppercase ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Recommended Countermeasures</h3>
+                  <div className="space-y-1.5 pl-1 sm:pl-2">
                     {preventionMethods[selectedRecord.type]?.map((action, idx) => (
-                      <div key={idx} className="flex gap-2 text-[11px] text-slate-300 leading-relaxed">
-                        <span className="text-red-500 shrink-0">•</span>
-                        {action}
+                      <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
+                        <span className={`${modalData.isSafe ? 'text-emerald-500' : 'text-red-500'} mt-0 sm:mt-0.5`}>•</span>
+                        <span>{action}</span>
                       </div>
                     ))}
                   </div>
                 </div>
+
               </div>
             </motion.div>
           </motion.div>
