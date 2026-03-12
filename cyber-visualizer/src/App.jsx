@@ -7,6 +7,7 @@ import RegisterPage from "./components/RegisterPage";
 import HomePage from "./components/HomePage";
 import DashboardPage from "./components/DashboardPage";
 
+// 1. Prevents unauthenticated users from accessing secure pages
 const ProtectedRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user) {
@@ -15,9 +16,19 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// 2. Prevents guest users from accessing the dashboard
 const DashboardRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user || user.isGuest) {
+    return <Navigate to="/home" replace />;
+  }
+  return children;
+};
+
+// ---> NEW: 3. Prevents logged-in users from accessing Login/Register pages
+const PublicRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (user) {
     return <Navigate to="/home" replace />;
   }
   return children;
@@ -151,9 +162,19 @@ function App() {
       <div className="flex-grow relative z-10 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          {/* Passed setIsModalOpen to both components so the header hides correctly everywhere */}
+          
+          {/* ---> NEW: Wrapped Login and Register with PublicRoute <--- */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          } />
+          
           <Route path="/home" element={<ProtectedRoute><HomePage setIsModalOpen={setIsModalOpen} /></ProtectedRoute>} />
           <Route path="/dashboard" element={<DashboardRoute><DashboardPage setIsModalOpen={setIsModalOpen} /></DashboardRoute>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
