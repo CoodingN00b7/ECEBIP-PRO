@@ -7,6 +7,7 @@ import {
   CreditCard,
   Wifi,
   Link as LinkIcon,
+  ChevronUp,
   X,
   AlertTriangle,
   User,
@@ -222,7 +223,7 @@ const HomePage = ({ setIsModalOpen }) => {
             </div>
           </div>
 
-          {/* Optimized Scan Types for Mobile - Switched to grid for smaller screens */}
+          {/* Optimized Scan Types for Mobile */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap justify-center gap-2 sm:gap-4 mb-6 md:mb-8">
             <AnimatePresence>
               {scanTypes.map((t) => (
@@ -238,7 +239,7 @@ const HomePage = ({ setIsModalOpen }) => {
             </AnimatePresence>
           </div>
 
-          {/* Search Input - Stacked on mobile, row on larger screens */}
+          {/* Search Input */}
           <div className="mt-4 p-2 bg-slate-900/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl flex flex-col sm:flex-row gap-3 shadow-[0_8px_32px_rgba(6,182,212,0.1)] focus-within:shadow-[0_8px_40px_rgba(6,182,212,0.2)] focus-within:border-cyan-500/50 transition-all duration-300">
             <input
               value={identifier} onChange={handleInputChange} placeholder={`Enter ${type.toLowerCase()}...`}
@@ -264,7 +265,6 @@ const HomePage = ({ setIsModalOpen }) => {
         {/* BOTTOM WIDGETS AREA */}
         <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mt-auto max-w-5xl w-full mx-auto">
           
-          {/* SYSTEM ONLINE STATUS ROW */}
           <div className="col-span-full mb-[-0.5rem] md:mb-[-1rem] px-1 md:px-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
                <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
@@ -312,9 +312,8 @@ const HomePage = ({ setIsModalOpen }) => {
             </div>
           </motion.div>
 
-          {/* NEW LIVE CYBER RADAR - Fluid sizes applied */}
+          {/* CYBER RADAR */}
           <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={`${glassPanel} flex flex-col justify-between min-h-[200px] sm:min-h-[220px] !p-0`}>
-            
             <div className="flex justify-between items-center border-b border-slate-700/50 p-4 sm:p-6 relative z-10 bg-[#0f172a]/40 backdrop-blur-sm">
               <h3 className="text-xs sm:text-sm font-bold text-white tracking-widest flex items-center gap-2">
                 <Globe size={14} className="text-cyan-400 sm:w-4 sm:h-4" /> REGIONAL SURVEILLANCE
@@ -326,10 +325,7 @@ const HomePage = ({ setIsModalOpen }) => {
               </div>
             </div>
             
-            {/* Radar Canvas Container */}
             <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-b-2xl py-8">
-              
-              {/* Cyber Grid Background */}
               <div 
                 className="absolute inset-0 opacity-20 pointer-events-none" 
                 style={{
@@ -337,50 +333,35 @@ const HomePage = ({ setIsModalOpen }) => {
                   backgroundSize: '20px 20px'
                 }}
               />
-
-              {/* Rotating Radar Sweep */}
               <div 
                 className="absolute w-[200%] h-[200%] rounded-full animate-[spin_4s_linear_infinite] pointer-events-none"
                 style={{
                   background: 'conic-gradient(from 0deg, transparent 75%, rgba(6,182,212,0.1) 90%, rgba(6,182,212,0.4) 100%)'
                 }}
               />
-
-              {/* Target Rings - Fluid classes applied */}
               <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border border-cyan-500/20 rounded-full pointer-events-none" />
               <div className="absolute w-32 h-32 sm:w-40 sm:h-40 border border-cyan-500/30 rounded-full border-dashed animate-[spin_15s_linear_infinite_reverse] pointer-events-none" />
               <div className="absolute w-12 h-12 sm:w-16 sm:h-16 border border-cyan-500/50 rounded-full flex items-center justify-center pointer-events-none">
                 <Crosshair size={20} className="text-cyan-500/40 animate-pulse sm:w-6 sm:h-6" />
               </div>
-
-              {/* Nodes and Network Overlay */}
               <div className="relative w-full h-full pointer-events-none">
-                 {/* Interconnecting Network Lines */}
                  <svg className="absolute inset-0 w-full h-full opacity-60">
                    <path d="M 30% 45% L 50% 65% L 75% 35%" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="animate-pulse" />
                  </svg>
-
-                 {/* Mumbai Node */}
                  <div className="absolute top-[45%] left-[30%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,1)]" />
                    <div className="absolute w-6 h-6 sm:w-8 sm:h-8 border border-cyan-400 rounded-full animate-ping opacity-50" />
                    <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-cyan-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-cyan-500/30 shadow-lg">MUMBAI</span>
                  </div>
-
-                 {/* Pune Node */}
                  <div className="absolute top-[65%] left-[50%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_rgba(99,102,241,1)]" />
                    <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-indigo-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-indigo-500/30 shadow-lg">PUNE</span>
                  </div>
-
-                 {/* Nagpur Node */}
                  <div className="absolute top-[35%] left-[75%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-purple-400 rounded-full shadow-[0_0_12px_rgba(168,85,247,1)]" />
                    <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-purple-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-purple-500/30 shadow-lg">NAGPUR</span>
                  </div>
               </div>
-
-              {/* Background Watermark Icon */}
               <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-slate-700/30 pointer-events-none">
                 <Shield size={60} className="sm:w-[90px] sm:h-[90px]" strokeWidth={1} />
               </div>
@@ -388,10 +369,9 @@ const HomePage = ({ setIsModalOpen }) => {
           </motion.div>
         </motion.div>
 
-        {/* Footer Area */}
         <motion.footer variants={itemVars} className="mt-10 sm:mt-14 mb-4 border-t border-slate-800/60 pt-6 sm:pt-8 pb-4 text-center max-w-5xl w-full mx-auto px-2">
           <p className="text-slate-500 text-[10px] sm:text-xs mb-3 sm:mb-4 font-semibold tracking-widest uppercase">
-                                      Developer: CoodingN00b7
+             Developer: CoodingN00b7
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4 text-[8px] sm:text-[9px] text-slate-600 font-mono tracking-widest uppercase">
             <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">DPDP Act 2023 Compliant</span>
@@ -414,17 +394,12 @@ const HomePage = ({ setIsModalOpen }) => {
               className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
               
-              {/* CHANGED: Sticky Header with separate left/right alignment */}
               <div className="flex-none flex justify-between items-start px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md gap-3">
-                
-                {/* Title & Badge Column (Left Side) */}
                 <div className="flex flex-col gap-2.5 min-w-0">
                   <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide">
                     <span className="whitespace-nowrap">Scan Results &ndash;</span>{" "}
                     <span className="text-slate-300 font-medium break-all">{result.queryId}</span>
                   </h2>
-                  
-                  {/* Status Badge */}
                   <div className="flex items-center">
                     {!modalData.isSafe ? (
                       <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950 text-red-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
@@ -437,8 +412,6 @@ const HomePage = ({ setIsModalOpen }) => {
                     )}
                   </div>
                 </div>
-
-                {/* Close Button pinned to top right (Right Side) */}
                 <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0 mt-0.5">
                   <X size={16} />
                 </motion.button>
@@ -447,19 +420,41 @@ const HomePage = ({ setIsModalOpen }) => {
               <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                  {/* Risk Gauge */}
+                  
+                  {/* METTER GAUGE WITH NEEDLE */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center relative shadow-inner">
                     <h3 className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</h3>
-                    <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6 flex items-end justify-center">
-                      <svg viewBox="0 0 100 50" className="w-full h-full overflow-visible">
+                    
+                    <div className="relative w-28 h-16 sm:w-36 sm:h-20 mt-6 flex items-end justify-center">
+                      <svg viewBox="0 0 100 55" className="w-full h-full overflow-visible">
+                        {/* Background Arc */}
                         <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
+                        
+                        {/* Colored Fill Arc */}
                         <motion.path 
-                          initial={{ strokeDashoffset: 125.6 }} animate={{ strokeDashoffset: 125.6 - (modalData.score / 100) * 125.6 }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                          d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modalData.gaugeColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={125.6}
+                          initial={{ strokeDashoffset: 125.6 }} 
+                          animate={{ strokeDashoffset: 125.6 - (modalData.score / 100) * 125.6 }} 
+                          transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                          d="M 10 50 A 40 40 0 0 1 90 50" 
+                          fill="none" stroke={modalData.gaugeColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={125.6}
                         />
+                        
+                        {/* Dynamic Animated Needle */}
+                        <motion.g
+                          initial={{ rotate: -90 }}
+                          animate={{ rotate: (modalData.score / 100) * 180 - 90 }}
+                          transition={{ duration: 1.5, type: "spring", stiffness: 60, damping: 15, delay: 0.4 }}
+                          style={{ transformOrigin: "50px 50px" }}
+                        >
+                          <path d="M 48 50 L 50 15 L 52 50 Z" fill={modalData.gaugeColor} />
+                        </motion.g>
+
+                        {/* Center Pin Base */}
+                        <motion.circle initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.8, type: "spring" }} cx="50" cy="50" r="5" fill="#1e293b" />
+                        <motion.circle initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.9, type: "spring" }} cx="50" cy="50" r="2.5" fill={modalData.gaugeColor} />
                       </svg>
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="absolute bottom-0 w-2 h-2 sm:w-3 sm:h-3 bg-slate-300 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
                     </div>
+
                     <div className="text-center mt-3 sm:mt-4">
                       <p className={`text-base sm:text-lg font-bold tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
                       <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">({modalData.score}/100)</p>
@@ -514,4 +509,3 @@ const HomePage = ({ setIsModalOpen }) => {
 };
 
 export default HomePage;
-
