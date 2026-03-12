@@ -466,7 +466,7 @@ const HomePage = () => {
 
         <motion.footer variants={itemVars} className="mt-10 sm:mt-14 mb-4 border-t border-slate-800/60 pt-6 sm:pt-8 pb-4 text-center max-w-5xl w-full mx-auto">
           <p className="text-slate-500 text-[10px] sm:text-xs mb-3 font-semibold tracking-widest uppercase">
-            Development Team: Fardeen Akmal | Jigisha Naidu | Sushil Nirmal | Suvajit Ghosh
+            Developer: CoodingN00b7
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4 text-[8px] sm:text-[9px] text-slate-600 font-mono tracking-widest uppercase">
             <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">DPDP Act 2023 Compliant</span>
@@ -591,3 +591,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
