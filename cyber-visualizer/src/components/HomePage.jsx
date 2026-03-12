@@ -17,10 +17,12 @@ import {
   Activity,
   Server,
   Crosshair,
+  Loader2,
   Lock,
   Database
 } from "lucide-react";
 
+// Main HomePage Component
 const HomePage = ({ setIsModalOpen }) => {
   const [mode, setMode] = useState("API");
   const [identifier, setIdentifier] = useState("");
@@ -29,6 +31,7 @@ const HomePage = ({ setIsModalOpen }) => {
   const [result, setResult] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // Tell the App component to hide/show the header when result changes
   useEffect(() => {
     if (setIsModalOpen) {
       setIsModalOpen(!!result);
@@ -36,12 +39,12 @@ const HomePage = ({ setIsModalOpen }) => {
   }, [result, setIsModalOpen]);
 
   const scanTypes = [
-    { id: "EMAIL", label: "Email", icon: <Mail size={18} className="sm:w-5 sm:h-5" /> },
-    { id: "PHONE", label: "Phone", icon: <Smartphone size={18} className="sm:w-5 sm:h-5" /> },
-    { id: "AADHAAR", label: "Aadhaar", icon: <Shield size={18} className="sm:w-5 sm:h-5" /> },
-    { id: "PAN", label: "PAN", icon: <CreditCard size={18} className="sm:w-5 sm:h-5" /> },
-    { id: "IP", label: "IP", icon: <Wifi size={18} className="sm:w-5 sm:h-5" /> },
-    { id: "URL", label: "URL", icon: <LinkIcon size={18} className="sm:w-5 sm:h-5" /> }
+    { id: "EMAIL", label: "Email", icon: <Mail size={16} className="sm:w-5 sm:h-5" /> },
+    { id: "PHONE", label: "Phone", icon: <Smartphone size={16} className="sm:w-5 sm:h-5" /> },
+    { id: "AADHAAR", label: "Aadhaar", icon: <Shield size={16} className="sm:w-5 sm:h-5" /> },
+    { id: "PAN", label: "PAN", icon: <CreditCard size={16} className="sm:w-5 sm:h-5" /> },
+    { id: "IP", label: "IP", icon: <Wifi size={16} className="sm:w-5 sm:h-5" /> },
+    { id: "URL", label: "URL", icon: <LinkIcon size={16} className="sm:w-5 sm:h-5" /> }
   ];
 
   const preventionMethods = {
@@ -245,25 +248,45 @@ const HomePage = ({ setIsModalOpen }) => {
             </AnimatePresence>
           </div>
 
-          {/* Search Input */}
+          {/* Search Input and Start Scan Button with animation */}
           <div className="mt-4 p-2 bg-slate-900/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl flex flex-col sm:flex-row gap-3 shadow-[0_8px_32px_rgba(6,182,212,0.1)] focus-within:shadow-[0_8px_40px_rgba(6,182,212,0.2)] focus-within:border-cyan-500/50 transition-all duration-300">
             <input
               value={identifier} onChange={handleInputChange} placeholder={`Enter ${type.toLowerCase()}...`}
               className="flex-1 bg-transparent px-4 py-3 sm:py-4 text-sm sm:text-base text-white placeholder-slate-500 outline-none w-full text-center sm:text-left font-mono"
             />
+            {/* START SCAN button with advanced animation */}
             <motion.button
-              whileHover={!loading ? { scale: 1.02, boxShadow: "0 0 25px rgba(6,182,212,0.4)" } : {}}
-              whileTap={!loading ? { scale: 0.95 } : {}}
+              key="startScan"
+              whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+              whileTap={{ scale: 0.97 }}
               transition={clickSpring}
               onClick={handleSearch} 
               disabled={loading}
-              className={`px-6 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold sm:min-w-[180px] w-full sm:w-auto shadow-[0_0_15px_rgba(6,182,212,0.2)] ${
+              className={`px-6 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold sm:min-w-[180px] w-full sm:w-auto overflow-hidden relative ${
                 loading 
-                ? "bg-slate-700 text-slate-300 cursor-not-allowed animate-pulse" 
-                : "bg-gradient-to-r from-indigo-500 to-cyan-500 text-white hover:from-indigo-400 hover:to-cyan-400 transition-colors"
+                ? "bg-slate-700 text-slate-300 cursor-not-allowed border border-slate-600/50" 
+                : "bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] border border-cyan-500/20"
               }`}
             >
-              {loading ? "SCANNING..." : "START SCAN"}
+              {loading ? (
+                <motion.div key="loadingContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 relative z-10">
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>SCANNING</span>
+                </motion.div>
+              ) : (
+                <motion.div key="scanContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 relative z-10">
+                  <Crosshair size={18} />
+                  <span>START SCAN</span>
+                </motion.div>
+              )}
+              
+              {/* Background scanning pulses */}
+              {loading && (
+                <>
+                  <motion.div initial={{ opacity: 0.4, scale: 0 }} animate={{ opacity: 0, scale: 2.2 }} transition={{ duration: 1, repeat: Infinity, ease: "easeOut" }} className="absolute inset-0 bg-cyan-400 rounded-xl" />
+                  <motion.div initial={{ opacity: 0.2, scale: 0 }} animate={{ opacity: 0, scale: 1.8 }} transition={{ duration: 1, repeat: Infinity, ease: "easeOut", delay: 0.3 }} className="absolute inset-0 bg-indigo-400 rounded-xl" />
+                </>
+              )}
             </motion.button>
           </div>
         </motion.div>
@@ -294,7 +317,7 @@ const HomePage = ({ setIsModalOpen }) => {
               <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700 tracking-wider">REAL-TIME</span>
             </div>
             
-            <div className="space-y-2.5 sm:space-y-3">
+            <div className="space-y-2.5 sm:space-y-3 relative z-10">
               {tickerData.map((item, i) => (
                 <div key={i} className="group flex items-center justify-between bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/50 hover:border-slate-500 transition-colors">
                   <div className="flex items-center gap-2.5 sm:gap-3.5 overflow-hidden">
@@ -409,7 +432,7 @@ const HomePage = ({ setIsModalOpen }) => {
 
       </motion.div>
 
-      {/* POPUP MODAL */}
+      {/* POPUP MODAL - Optimized to your reference */}
       <AnimatePresence>
         {result && modalData && (
           <motion.div 
@@ -421,115 +444,119 @@ const HomePage = ({ setIsModalOpen }) => {
               className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
               
-              {/* Sticky Header */}
+              {/* Sticky Header with Hash and Status */}
               <div className="flex-none flex justify-between items-start px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md gap-3">
                 
-                {/* Title & Badge Column */}
+                {/* Title and Hash */}
                 <div className="flex flex-col gap-2.5 min-w-0">
-                  <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide flex items-center gap-2">
-                    <Database size={16} className="text-slate-400" />
-                    SCAN INTEL REPORT
+                  <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide">
+                    SCAN INTEL REPORT —
+                    <span className="text-slate-300 font-medium break-all font-mono ml-1">SHA: {modalData.mockHash}</span>
                   </h2>
-                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {modalData.mockHash}</p>
+                  
+                  {/* Status Badge */}
+                  <div className="flex items-center">
+                    {!modalData.isSafe ? (
+                      <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950 text-red-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                        THREAT DETECTED
+                      </motion.span>
+                    ) : (
+                      <span className="text-[9px] sm:text-[10px] bg-emerald-950 text-emerald-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-emerald-500/30">
+                        SYSTEM SAFE
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  {!modalData.isSafe ? (
-                    <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950/80 text-red-400 px-2 sm:px-3 py-1.5 rounded font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] flex items-center gap-1.5">
-                      <AlertTriangle size={12} /> THREAT DETECTED
-                    </motion.span>
-                  ) : (
-                    <span className="text-[9px] sm:text-[10px] bg-emerald-950/80 text-emerald-400 px-2 sm:px-3 py-1.5 rounded font-bold tracking-wider border border-emerald-500/30 flex items-center gap-1.5">
-                      <Shield size={12} /> SYSTEM SAFE
-                    </span>
-                  )}
-                  {/* Close Button */}
-                  <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0">
-                    <X size={16} />
-                  </motion.button>
-                </div>
+                {/* Close Button pinned to top right */}
+                <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0 mt-0.5">
+                  <X size={16} />
+                </motion.button>
               </div>
 
-              <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
+              <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6 relative z-10">
                 
+                {/* Information cards, densely laid out */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
                   {/* Detailed Risk Gauge */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center relative shadow-inner group">
-                    <h3 className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider">RISK INDEX</h3>
+                    <h3 className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider">RISK PROFILE</h3>
                     
-                    {/* ACCURATE SVG SEMI-CIRCLE GAUGE */}
-                    <div className="relative w-36 h-20 sm:w-44 sm:h-24 mt-6 flex items-end justify-center">
-                      <svg viewBox="0 0 100 65" className="w-full h-full overflow-visible">
+                    {/* ACCURATE SVG SEMI-CIRCLE GAUGE matching user reference */}
+                    <div className="relative w-32 h-20 sm:w-40 sm:h-24 mt-4 flex items-end justify-center">
+                      <svg viewBox="0 0 100 80" className="w-full h-full overflow-visible">
+                        {/* Define Arc Path */}
                         <defs>
                           <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stopColor="#334155" />
-                            <stop offset="100%" stopColor="#0f172a" />
+                            <stop offset="0%" stopColor="#1e293b" />
+                            <stop offset="100%" stopColor="#020617" />
                           </radialGradient>
+                          <filter id="hubInnerShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <stop offset="0%" stopColor="#111827" stopOpacity="0.8" />
+                            <stop offset="100%" stopColor="#374151" stopOpacity="0.1" />
+                          </filter>
                         </defs>
 
-                        {/* Segment 1: Red (0 - 25%) */}
-                        <path d="M 15 55 A 35 35 0 0 1 25.25 30.25" fill="none" stroke="#ef4444" strokeWidth="10" strokeLinecap="round" />
-                        
-                        {/* Segment 2: Orange (25 - 50%) */}
-                        <path d="M 25.25 30.25 A 35 35 0 0 1 50 20" fill="none" stroke="#f97316" strokeWidth="10" />
-                        
-                        {/* Segment 3: Yellow (50 - 75%) */}
-                        <path d="M 50 20 A 35 35 0 0 1 74.75 30.25" fill="none" stroke="#eab308" strokeWidth="10" />
-                        
-                        {/* Segment 4: Green (75 - 100%) */}
-                        <path d="M 74.75 30.25 A 35 35 0 0 1 85 55" fill="none" stroke="#10b981" strokeWidth="10" strokeLinecap="round" />
+                        {/* Background scale */}
+                        <path d="M 10 70 A 40 40 0 0 1 90 70" fill="none" stroke="#334155" strokeWidth="3" strokeDasharray="1 3" />
 
-                        {/* Background ticks */}
-                        <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="#334155" strokeWidth="2" strokeDasharray="2 4" />
+                        {/* Segmented Color Background */}
+                        <path d="M 10 70 A 40 40 0 0 1 25 35" fill="none" stroke="#ef4444" strokeWidth="10" />
+                        <path d="M 25 35 A 40 40 0 0 1 50 20" fill="none" stroke="#f97316" strokeWidth="10" />
+                        <path d="M 50 20 A 40 40 0 0 1 75 35" fill="none" stroke="#eab308" strokeWidth="10" />
+                        <path d="M 75 35 A 40 40 0 0 1 90 70" fill="none" stroke="#10b981" strokeWidth="10" />
 
-                        {/* Central Hub */}
-                        <circle cx="50" cy="55" r="16" fill="url(#hubGradient)" stroke="#475569" strokeWidth="1"/>
+                        {/* Recessed hub to contain text */}
+                        <circle cx="50" cy="50" r="16" fill="url(#hubGradient)" filter="url(#hubInnerShadow)" stroke="#334155" strokeWidth="1"/>
                         
-                        {/* Percentage inside Hub */}
-                        <motion.text initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} x="50" y="59" textAnchor="middle" className="text-xs font-black fill-slate-200 font-mono tracking-tighter">
-                          {modalData.score}%
+                        {/* Percentage text INSIDE hub */}
+                        <motion.text initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} x="50" y="55" textAnchor="middle" className="text-xl font-extrabold fill-slate-200 font-mono tracking-tighter" dy="-2">
+                          {modalData.score}<tspan className="text-[10px] font-medium fill-slate-500">%</tspan>
                         </motion.text>
                         
-                        {/* Animated Needle */}
+                        {/* Animated Red Needle matching user reference */}
                         <motion.g
                           initial={{ rotate: -90 }}
-                          animate={{ rotate: (modalData.score / 100) * 180 - 90 }}
+                          animate={{ rotate: (modalData.score / 100) * 180 - 90 }} // Map 0-100 score to -90 to +90 degrees
                           transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.5 }}
-                          style={{ transformOrigin: "50px 55px" }}
+                          style={{ transformOrigin: "50px 50px" }}
                         >
-                          <polygon points="47,55 53,55 50,22" fill="#ef4444" stroke="#ffffff" strokeWidth="0.5"/>
-                          <circle cx="50" cy="55" r="3" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1"/>
+                          <polygon points="48,50 52,50 50,15" fill="#ef4444" stroke="#ffffff" strokeWidth="0.5"/>
+                          {/* Needle Pivot Dot */}
+                          <circle cx="50" cy="50" r="3" fill="#f8fafc" stroke="#64748b" strokeWidth="1"/>
                         </motion.g>
+
                       </svg>
                     </div>
 
-                    <div className="text-center mt-4">
+                    <div className="text-center mt-3 sm:mt-4 relative z-10">
                       <p className={`text-base sm:text-xl font-black tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
-                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">SCORE: {modalData.riskScore}/100</p>
+                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">SCORE: {riskScore}/100</p>
                     </div>
                   </motion.div>
 
-                  {/* Identifier List */}
-                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 shadow-inner group flex flex-col justify-center">
+                  {/* Identifier Telemetry - Detailed information */}
+                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 shadow-inner flex flex-col justify-center group relative overflow-hidden">
                     <h3 className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-4 group-hover:text-cyan-400 transition-colors uppercase">Target Telemetry</h3>
-                    <ul className="space-y-3 sm:space-y-4 font-mono">
-                      <li className="flex items-center text-[10px] sm:text-xs"><User size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">TARGET:</span><span className="text-white font-medium truncate">{result.queryId}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Filter size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">VECTOR:</span><span className="text-white font-bold">{result.scanType}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Globe size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">ORIGIN:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.source || "Clean"}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Calendar size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">TSTAMP:</span><span className="text-white font-bold">{modalData.scanDate}</span></li>
+                    <ul className="space-y-3 sm:space-y-4 font-mono relative z-10">
+                      <li className="flex items-center text-[10px] sm:text-xs"><User size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">TARGET:</span><span className="text-white font-medium truncate">{result.queryId}</span></li>
+                      <li className="flex items-center text-[10px] sm:text-xs"><Filter size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">VECTOR:</span><span className="text-white font-bold">{result.scanType}</span></li>
+                      <li className="flex items-center text-[10px] sm:text-xs"><Globe size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">ORIGIN:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.source || "Clean"}</span></li>
+                      <li className="flex items-center text-[10px] sm:text-xs"><AlertTriangle size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">BREACH:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.breachName || "None"}</span></li>
+                      <li className="flex items-center text-[10px] sm:text-xs"><Calendar size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">TSTAMP:</span><span className="text-white font-bold">{modalData.scanDate}</span></li>
                     </ul>
                   </motion.div>
 
-                  {/* Compromised Data Container */}
-                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col shadow-inner group">
-                    <div className="flex justify-between items-center mb-4">
+                  {/* Compromised Assets Container - COMPACTED */}
+                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col shadow-inner group relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-4 relative z-10">
                       <h3 className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider group-hover:text-cyan-400 transition-colors uppercase">Compromised Assets</h3>
                       <Lock size={12} className={modalData.isSafe ? "text-emerald-500" : "text-red-500"} />
                     </div>
-                    <motion.div variants={containerVars} className="space-y-2 pr-1 custom-scrollbar max-h-32 md:max-h-none overflow-y-auto flex-1">
+                    <motion.div variants={containerVars} className="space-y-2 overflowing-assets pr-1 custom-scrollbar max-h-32 md:max-h-none flex-1 relative z-10">
                       {modalData.compromisedList.map((item, idx) => (
-                        <motion.div variants={itemVars} key={idx} className={`flex items-center gap-2 sm:gap-3 p-2 rounded transition-colors group-hover:translate-x-1 ${modalData.isSafe ? 'bg-emerald-950/20 border border-emerald-500/20' : 'bg-red-950/20 border border-red-500/20'}`}>
+                        <motion.div variants={itemVars} key={idx} className={`flex items-center gap-2 sm:gap-3 p-1.5 rounded transition-colors group-hover:translate-x-1 ${modalData.isSafe ? 'bg-emerald-950/20' : 'bg-red-950/20'}`}>
                           <LayoutTemplate size={12} className={`flex-shrink-0 sm:w-3.5 sm:h-3.5 ${modalData.isSafe ? "text-emerald-400" : "text-red-400"}`} />
                           <span className="text-slate-200 text-xs sm:text-sm font-medium">{item}</span>
                         </motion.div>
@@ -538,13 +565,13 @@ const HomePage = ({ setIsModalOpen }) => {
                   </motion.div>
                 </div>
 
-                {/* Recommendations */}
-                <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`border rounded-xl p-4 sm:p-5 shadow-inner ${modalData.isSafe ? 'bg-emerald-950/10 border-emerald-500/20' : 'bg-red-950/10 border-red-500/20'}`}>
-                  <h3 className={`text-xs sm:text-sm font-semibold mb-3 tracking-wide uppercase ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Tactical Mitigation Steps</h3>
-                  <motion.div variants={containerVars} className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-1 sm:pl-2">
+                {/* Tactical Recommendations */}
+                <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`border rounded-xl p-4 sm:p-5 shadow-inner relative overflow-hidden z-10 ${modalData.isSafe ? 'bg-emerald-950/10 border-emerald-500/20' : 'bg-red-950/10 border-red-500/20'}`}>
+                  <h3 className={`text-xs sm:text-sm font-semibold mb-3 tracking-wide uppercase ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Mitigation Strategy</h3>
+                  <motion.div variants={containerVars} className="space-y-2 pl-1 sm:pl-2 relative z-10">
                     {preventionMethods[result.scanType]?.map((action, idx) => (
-                      <motion.div variants={itemVars} key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-300 bg-slate-900/40 p-3 rounded border border-slate-800/50">
-                        <span className={`${modalData.isSafe ? 'text-emerald-500' : 'text-red-500'} mt-0.5`}>▹</span>
+                      <motion.div variants={itemVars} key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
+                        <span className={`${modalData.isSafe ? 'text-emerald-500' : 'text-red-500'} mt-0 sm:mt-0.5`}>▹</span>
                         <span className="leading-relaxed">{action}</span>
                       </motion.div>
                     ))}
