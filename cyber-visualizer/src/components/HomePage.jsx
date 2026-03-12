@@ -180,24 +180,34 @@ const HomePage = ({ setIsModalOpen }) => {
       }
     }
 
+    // Risk Score: 0 (Safe) to 100 (Critical)
     const riskScore = isSafe ? 0 : (result.severityScore ? parseInt(result.severityScore) : 89);
-    
-    // Safety score for gauge orientation (Green = Left, Red = Right)
-    const score = 100 - riskScore; 
     
     let riskLevel = "SAFE";
     let riskColor = "text-emerald-400";
+    let gaugeShadow = "shadow-[0_0_30px_rgba(16,185,129,0.15)]";
     
     if (!isSafe) {
-      if (score <= 25) { riskLevel = "CRITICAL"; riskColor = "text-red-500"; }
-      else if (score <= 50) { riskLevel = "MODERATE"; riskColor = "text-orange-400"; }
-      else if (score <= 75) { riskLevel = "LOW"; riskColor = "text-yellow-400"; }
-      else { riskLevel = "SAFE"; riskColor = "text-emerald-400"; }
+      if (riskScore >= 75) { 
+        riskLevel = "CRITICAL"; 
+        riskColor = "text-red-500"; 
+        gaugeShadow = "shadow-[0_0_30px_rgba(239,68,68,0.15)]";
+      }
+      else if (riskScore >= 50) { 
+        riskLevel = "MODERATE"; 
+        riskColor = "text-orange-400"; 
+        gaugeShadow = "shadow-[0_0_30px_rgba(249,115,22,0.15)]";
+      }
+      else if (riskScore > 0) { 
+        riskLevel = "LOW"; 
+        riskColor = "text-yellow-400"; 
+        gaugeShadow = "shadow-[0_0_30px_rgba(234,179,8,0.15)]";
+      }
     }
 
     const mockHash = Array.from({length: 12}, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 
-    return { isSafe, source, breachName, compromisedList, score, riskLevel, riskColor, scanDate, mockHash, riskScore };
+    return { isSafe, source, breachName, compromisedList, riskLevel, riskColor, gaugeShadow, scanDate, mockHash, riskScore };
   };
 
   const modalData = getModalData();
@@ -208,6 +218,7 @@ const HomePage = ({ setIsModalOpen }) => {
 
   return (
     <>
+      {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div 
           animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -461,53 +472,73 @@ const HomePage = ({ setIsModalOpen }) => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
-                  {/* Detailed Risk Gauge */}
-                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center relative shadow-inner group">
-                    <h3 className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider">RISK PROFILE</h3>
+                  {/* NEW PROFESSIONAL SPEEDOMETER GAUGE */}
+                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`bg-slate-900/80 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-between relative shadow-inner group overflow-hidden ${modalData.gaugeShadow} transition-shadow duration-500`}>
                     
-                    <div className="relative w-32 h-20 sm:w-40 sm:h-24 mt-4 flex items-end justify-center">
-                      <svg viewBox="0 0 100 80" className="w-full h-full overflow-visible">
-                        <defs>
-                          <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stopColor="#1e293b" />
-                            <stop offset="100%" stopColor="#020617" />
-                          </radialGradient>
-                          <filter id="hubInnerShadow" x="-20%" y="-20%" width="140%" height="140%">
-                            <stop offset="0%" stopColor="#111827" stopOpacity="0.8" />
-                            <stop offset="100%" stopColor="#374151" stopOpacity="0.1" />
-                          </filter>
-                        </defs>
+                    {/* Background faint cyber grid */}
+                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, rgba(148,163,184,0.4) 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
 
-                        <path d="M 10 70 A 40 40 0 0 1 90 70" fill="none" stroke="#334155" strokeWidth="3" strokeDasharray="1 3" />
-
-                        <path d="M 10 70 A 40 40 0 0 1 25 35" fill="none" stroke="#ef4444" strokeWidth="10" />
-                        <path d="M 25 35 A 40 40 0 0 1 50 20" fill="none" stroke="#f97316" strokeWidth="10" />
-                        <path d="M 50 20 A 40 40 0 0 1 75 35" fill="none" stroke="#eab308" strokeWidth="10" />
-                        <path d="M 75 35 A 40 40 0 0 1 90 70" fill="none" stroke="#10b981" strokeWidth="10" />
-
-                        <circle cx="50" cy="50" r="16" fill="url(#hubGradient)" filter="url(#hubInnerShadow)" stroke="#334155" strokeWidth="1"/>
+                    <h3 className="w-full text-left text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-2 relative z-10">RISK PROFILE</h3>
+                    
+                    {/* Gauge Container */}
+                    <div className="relative w-full aspect-[2/1] mt-2 flex items-end justify-center z-10">
+                      <svg viewBox="0 0 200 110" className="w-[90%] h-auto overflow-visible drop-shadow-2xl">
                         
-                        <motion.text initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} x="50" y="55" textAnchor="middle" className="text-xl font-extrabold fill-slate-200 font-mono tracking-tighter" dy="-2">
-                          {modalData.score}<tspan className="text-[10px] font-medium fill-slate-500">%</tspan>
-                        </motion.text>
+                        {/* 1. Track Background */}
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="#1e293b" strokeWidth="16" strokeDasharray="314.16 500" transform="rotate(150 100 100)" strokeLinecap="round" />
                         
+                        {/* 2. Colored Arc Segments (Total arc = 240 deg. Each 1/4 = 60 deg = 78.54 length) */}
+                        {/* Green: 0 to 25 */}
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="#10b981" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(150 100 100)" />
+                        {/* Yellow: 25 to 50 */}
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="#eab308" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(210 100 100)" />
+                        {/* Orange: 50 to 75 */}
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="#f97316" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(270 100 100)" />
+                        {/* Red: 75 to 100 */}
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="#ef4444" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(330 100 100)" />
+
+                        {/* 3. Outer Tick Marks & Labels */}
+                        {[0, 20, 40, 60, 80, 100].map((val) => {
+                           // Mapping 0-100 to angle -120 to +120
+                           const angle = -120 + (val / 100) * 240;
+                           return (
+                              <g key={val} transform={`rotate(${angle} 100 100)`}>
+                                 {/* Tick line */}
+                                 <line x1="100" y1="12" x2="100" y2="18" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+                                 {/* Label */}
+                                 <text x="100" y="8" fill="#94a3b8" fontSize="9" fontWeight="bold" textAnchor="middle" transform={`rotate(${-angle} 100 8)`}>
+                                    {val}
+                                 </text>
+                              </g>
+                           )
+                        })}
+
+                        {/* 4. Center Hub Display (Digital value inside the gauge) */}
+                        <text x="100" y="80" textAnchor="middle" fill="#ffffff" fontSize="24" fontWeight="900" className="font-mono tracking-tighter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                           {modalData.riskScore}
+                        </text>
+                        <text x="100" y="95" textAnchor="middle" fill="#64748b" fontSize="10" fontWeight="bold" className="tracking-widest">
+                           / 100
+                        </text>
+
+                        {/* 5. Animated Needle */}
                         <motion.g
-                          initial={{ rotate: -90 }}
-                          animate={{ rotate: (modalData.score / 100) * 180 - 90 }}
-                          transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.5 }}
-                          style={{ transformOrigin: "50px 50px" }}
+                          initial={{ rotate: -120 }}
+                          animate={{ rotate: -120 + (modalData.riskScore / 100) * 240 }}
+                          transition={{ type: "spring", stiffness: 40, damping: 15, delay: 0.3 }}
+                          style={{ transformOrigin: "100px 100px" }}
                         >
-                          <polygon points="48,50 52,50 50,15" fill="#ef4444" stroke="#ffffff" strokeWidth="0.5"/>
-                          <circle cx="50" cy="50" r="3" fill="#f8fafc" stroke="#64748b" strokeWidth="1"/>
+                           {/* Needle Point */}
+                           <polygon points="98,100 102,100 100,32" fill="#f8fafc" className="drop-shadow-md" />
+                           {/* Center Pivot Base */}
+                           <circle cx="100" cy="100" r="5" fill="#0f172a" stroke="#cbd5e1" strokeWidth="2" />
                         </motion.g>
 
                       </svg>
                     </div>
 
-                    <div className="text-center mt-3 sm:mt-4 relative z-10">
-                      <p className={`text-base sm:text-xl font-black tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
-                      {/* FIX IMPLEMENTED HERE: Changed riskScore to modalData.riskScore */}
-                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">SCORE: {modalData.riskScore}/100</p>
+                    <div className="text-center mt-3 relative z-10 w-full">
+                      <p className={`text-xl sm:text-2xl font-black tracking-widest uppercase drop-shadow-md ${modalData.riskColor}`}>{modalData.riskLevel}</p>
                     </div>
                   </motion.div>
 
