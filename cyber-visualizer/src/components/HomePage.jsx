@@ -22,7 +22,6 @@ import {
   Database
 } from "lucide-react";
 
-// Main HomePage Component
 const HomePage = ({ setIsModalOpen }) => {
   const [mode, setMode] = useState("API");
   const [identifier, setIdentifier] = useState("");
@@ -31,7 +30,6 @@ const HomePage = ({ setIsModalOpen }) => {
   const [result, setResult] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Tell the App component to hide/show the header when result changes
   useEffect(() => {
     if (setIsModalOpen) {
       setIsModalOpen(!!result);
@@ -97,6 +95,9 @@ const HomePage = ({ setIsModalOpen }) => {
     const currentQuery = identifier;
     let finalStatus = "Safe";
     let finalResultData = null; 
+
+    // Simulate network delay for UI polish
+    await new Promise(resolve => setTimeout(resolve, 600));
 
     try {
       let response;
@@ -165,14 +166,23 @@ const HomePage = ({ setIsModalOpen }) => {
     const isSafe = result.status === "Safe";
     const source = result.source;
     const breachName = result.breachName;
-    const compromisedStr = result.compromisedData;
     const scanDate = result.scanDate || new Date().toISOString().split('T')[0];
-    const compromisedList = compromisedStr ? compromisedStr.split(',').map(s => s.trim()) : (isSafe ? ["None"] : ["Unknown Data"]);
+    
+    // Failsafe parsing for compromised data
+    let compromisedList = ["None"];
+    if (!isSafe && result.compromisedData) {
+      if (Array.isArray(result.compromisedData)) {
+        compromisedList = result.compromisedData;
+      } else if (typeof result.compromisedData === 'string') {
+        compromisedList = result.compromisedData.split(',').map(s => s.trim());
+      } else {
+        compromisedList = ["Unknown Data"];
+      }
+    }
+
     const riskScore = isSafe ? 0 : (result.severityScore ? parseInt(result.severityScore) : 89);
     
-    // Convert logic to ensure green is 100% safe, red is 0% safe on the gauge.
-    // Assuming the gauge goes from Left (0%) to Right (100%).
-    // We'll calculate a 'Safety Score' for the gauge orientation.
+    // Safety score for gauge orientation (Green = Left, Red = Right)
     const score = 100 - riskScore; 
     
     let riskLevel = "SAFE";
@@ -248,13 +258,13 @@ const HomePage = ({ setIsModalOpen }) => {
             </AnimatePresence>
           </div>
 
-          {/* Search Input and Start Scan Button with animation */}
+          {/* Search Input and Button */}
           <div className="mt-4 p-2 bg-slate-900/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl flex flex-col sm:flex-row gap-3 shadow-[0_8px_32px_rgba(6,182,212,0.1)] focus-within:shadow-[0_8px_40px_rgba(6,182,212,0.2)] focus-within:border-cyan-500/50 transition-all duration-300">
             <input
               value={identifier} onChange={handleInputChange} placeholder={`Enter ${type.toLowerCase()}...`}
               className="flex-1 bg-transparent px-4 py-3 sm:py-4 text-sm sm:text-base text-white placeholder-slate-500 outline-none w-full text-center sm:text-left font-mono"
             />
-            {/* START SCAN button with advanced animation */}
+            
             <motion.button
               key="startScan"
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
@@ -270,21 +280,21 @@ const HomePage = ({ setIsModalOpen }) => {
             >
               {loading ? (
                 <motion.div key="loadingContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 relative z-10">
-                  <Loader2 size={18} className="animate-spin" />
-                  <span>SCANNING</span>
+                  <Loader2 size={18} className="animate-spin text-cyan-400" />
+                  <span className="tracking-widest">SCANNING</span>
                 </motion.div>
               ) : (
                 <motion.div key="scanContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 relative z-10">
                   <Crosshair size={18} />
-                  <span>START SCAN</span>
+                  <span className="tracking-widest">START SCAN</span>
                 </motion.div>
               )}
               
-              {/* Background scanning pulses */}
+              {/* Cyber Security Pulses during loading */}
               {loading && (
                 <>
-                  <motion.div initial={{ opacity: 0.4, scale: 0 }} animate={{ opacity: 0, scale: 2.2 }} transition={{ duration: 1, repeat: Infinity, ease: "easeOut" }} className="absolute inset-0 bg-cyan-400 rounded-xl" />
-                  <motion.div initial={{ opacity: 0.2, scale: 0 }} animate={{ opacity: 0, scale: 1.8 }} transition={{ duration: 1, repeat: Infinity, ease: "easeOut", delay: 0.3 }} className="absolute inset-0 bg-indigo-400 rounded-xl" />
+                  <motion.div initial={{ opacity: 0.4, scale: 0 }} animate={{ opacity: 0, scale: 2.2 }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut" }} className="absolute inset-0 bg-cyan-400 rounded-xl" />
+                  <motion.div initial={{ opacity: 0.2, scale: 0 }} animate={{ opacity: 0, scale: 1.8 }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut", delay: 0.4 }} className="absolute inset-0 bg-indigo-400 rounded-xl" />
                 </>
               )}
             </motion.button>
@@ -294,7 +304,6 @@ const HomePage = ({ setIsModalOpen }) => {
         {/* BOTTOM WIDGETS AREA */}
         <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mt-auto max-w-5xl w-full mx-auto">
           
-          {/* SYSTEM ONLINE STATUS ROW */}
           <div className="col-span-full mb-[-0.5rem] md:mb-[-1rem] px-1 md:px-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
                <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
@@ -308,7 +317,6 @@ const HomePage = ({ setIsModalOpen }) => {
             </div>
           </div>
 
-          {/* RECENT BREACH TICKER */}
           <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={glassPanel}>
             <div className="flex justify-between items-center mb-4 sm:mb-5 border-b border-slate-700/50 pb-2.5 sm:pb-3 relative z-10">
               <h3 className="text-xs sm:text-sm font-bold text-white tracking-widest flex items-center gap-2">
@@ -342,7 +350,6 @@ const HomePage = ({ setIsModalOpen }) => {
             </div>
           </motion.div>
 
-          {/* NEW LIVE CYBER RADAR */}
           <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={`${glassPanel} flex flex-col justify-between min-h-[200px] sm:min-h-[220px] !p-0`}>
             
             <div className="flex justify-between items-center border-b border-slate-700/50 p-4 sm:p-6 relative z-10 bg-[#0f172a]/40 backdrop-blur-sm">
@@ -356,61 +363,37 @@ const HomePage = ({ setIsModalOpen }) => {
               </div>
             </div>
             
-            {/* Radar Canvas Container */}
             <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-b-2xl py-8">
-              
-              {/* Cyber Grid Background */}
-              <div 
-                className="absolute inset-0 opacity-20 pointer-events-none" 
-                style={{
-                  backgroundImage: 'linear-gradient(rgba(6,182,212,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.2) 1px, transparent 1px)',
-                  backgroundSize: '20px 20px'
-                }}
-              />
-
-              {/* Rotating Radar Sweep */}
-              <div 
-                className="absolute w-[200%] h-[200%] rounded-full animate-[spin_4s_linear_infinite] pointer-events-none"
-                style={{
-                  background: 'conic-gradient(from 0deg, transparent 75%, rgba(6,182,212,0.1) 90%, rgba(6,182,212,0.4) 100%)'
-                }}
-              />
-
-              {/* Target Rings */}
+              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(6,182,212,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.2) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+              <div className="absolute w-[200%] h-[200%] rounded-full animate-[spin_4s_linear_infinite] pointer-events-none" style={{ background: 'conic-gradient(from 0deg, transparent 75%, rgba(6,182,212,0.1) 90%, rgba(6,182,212,0.4) 100%)' }} />
               <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border border-cyan-500/20 rounded-full pointer-events-none" />
               <div className="absolute w-32 h-32 sm:w-40 sm:h-40 border border-cyan-500/30 rounded-full border-dashed animate-[spin_15s_linear_infinite_reverse] pointer-events-none" />
               <div className="absolute w-12 h-12 sm:w-16 sm:h-16 border border-cyan-500/50 rounded-full flex items-center justify-center pointer-events-none">
                 <Crosshair size={20} className="text-cyan-500/40 animate-pulse sm:w-6 sm:h-6" />
               </div>
 
-              {/* Nodes and Network Overlay */}
               <div className="relative w-full h-full pointer-events-none">
-                 {/* Interconnecting Network Lines */}
                  <svg className="absolute inset-0 w-full h-full opacity-60">
                    <path d="M 30% 45% L 50% 65% L 75% 35%" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="animate-pulse" />
                  </svg>
 
-                 {/* Mumbai Node */}
                  <div className="absolute top-[45%] left-[30%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,1)]" />
                    <div className="absolute w-6 h-6 sm:w-8 sm:h-8 border border-cyan-400 rounded-full animate-ping opacity-50" />
                    <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-cyan-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-cyan-500/30 shadow-lg">MUMBAI</span>
                  </div>
 
-                 {/* Pune Node */}
                  <div className="absolute top-[65%] left-[50%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_rgba(99,102,241,1)]" />
                    <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-indigo-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-indigo-500/30 shadow-lg">PUNE</span>
                  </div>
 
-                 {/* Nagpur Node */}
                  <div className="absolute top-[35%] left-[75%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-purple-400 rounded-full shadow-[0_0_12px_rgba(168,85,247,1)]" />
                    <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-purple-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-purple-500/30 shadow-lg">NAGPUR</span>
                  </div>
               </div>
 
-              {/* Background Watermark Icon */}
               <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-slate-700/30 pointer-events-none">
                 <Shield size={60} className="sm:w-[90px] sm:h-[90px]" strokeWidth={1} />
               </div>
@@ -432,7 +415,7 @@ const HomePage = ({ setIsModalOpen }) => {
 
       </motion.div>
 
-      {/* POPUP MODAL - Optimized to your reference */}
+      {/* POPUP MODAL */}
       <AnimatePresence>
         {result && modalData && (
           <motion.div 
@@ -444,7 +427,7 @@ const HomePage = ({ setIsModalOpen }) => {
               className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
               
-              {/* Sticky Header with Hash and Status */}
+              {/* Sticky Header */}
               <div className="flex-none flex justify-between items-start px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md gap-3">
                 
                 {/* Title and Hash */}
@@ -468,7 +451,7 @@ const HomePage = ({ setIsModalOpen }) => {
                   </div>
                 </div>
 
-                {/* Close Button pinned to top right */}
+                {/* Close Button */}
                 <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0 mt-0.5">
                   <X size={16} />
                 </motion.button>
@@ -476,17 +459,14 @@ const HomePage = ({ setIsModalOpen }) => {
 
               <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6 relative z-10">
                 
-                {/* Information cards, densely laid out */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
                   {/* Detailed Risk Gauge */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center relative shadow-inner group">
                     <h3 className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider">RISK PROFILE</h3>
                     
-                    {/* ACCURATE SVG SEMI-CIRCLE GAUGE matching user reference */}
                     <div className="relative w-32 h-20 sm:w-40 sm:h-24 mt-4 flex items-end justify-center">
                       <svg viewBox="0 0 100 80" className="w-full h-full overflow-visible">
-                        {/* Define Arc Path */}
                         <defs>
                           <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stopColor="#1e293b" />
@@ -498,32 +478,26 @@ const HomePage = ({ setIsModalOpen }) => {
                           </filter>
                         </defs>
 
-                        {/* Background scale */}
                         <path d="M 10 70 A 40 40 0 0 1 90 70" fill="none" stroke="#334155" strokeWidth="3" strokeDasharray="1 3" />
 
-                        {/* Segmented Color Background */}
                         <path d="M 10 70 A 40 40 0 0 1 25 35" fill="none" stroke="#ef4444" strokeWidth="10" />
                         <path d="M 25 35 A 40 40 0 0 1 50 20" fill="none" stroke="#f97316" strokeWidth="10" />
                         <path d="M 50 20 A 40 40 0 0 1 75 35" fill="none" stroke="#eab308" strokeWidth="10" />
                         <path d="M 75 35 A 40 40 0 0 1 90 70" fill="none" stroke="#10b981" strokeWidth="10" />
 
-                        {/* Recessed hub to contain text */}
                         <circle cx="50" cy="50" r="16" fill="url(#hubGradient)" filter="url(#hubInnerShadow)" stroke="#334155" strokeWidth="1"/>
                         
-                        {/* Percentage text INSIDE hub */}
                         <motion.text initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} x="50" y="55" textAnchor="middle" className="text-xl font-extrabold fill-slate-200 font-mono tracking-tighter" dy="-2">
                           {modalData.score}<tspan className="text-[10px] font-medium fill-slate-500">%</tspan>
                         </motion.text>
                         
-                        {/* Animated Red Needle matching user reference */}
                         <motion.g
                           initial={{ rotate: -90 }}
-                          animate={{ rotate: (modalData.score / 100) * 180 - 90 }} // Map 0-100 score to -90 to +90 degrees
+                          animate={{ rotate: (modalData.score / 100) * 180 - 90 }}
                           transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.5 }}
                           style={{ transformOrigin: "50px 50px" }}
                         >
                           <polygon points="48,50 52,50 50,15" fill="#ef4444" stroke="#ffffff" strokeWidth="0.5"/>
-                          {/* Needle Pivot Dot */}
                           <circle cx="50" cy="50" r="3" fill="#f8fafc" stroke="#64748b" strokeWidth="1"/>
                         </motion.g>
 
@@ -532,11 +506,12 @@ const HomePage = ({ setIsModalOpen }) => {
 
                     <div className="text-center mt-3 sm:mt-4 relative z-10">
                       <p className={`text-base sm:text-xl font-black tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
-                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">SCORE: {riskScore}/100</p>
+                      {/* FIX IMPLEMENTED HERE: Changed riskScore to modalData.riskScore */}
+                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">SCORE: {modalData.riskScore}/100</p>
                     </div>
                   </motion.div>
 
-                  {/* Identifier Telemetry - Detailed information */}
+                  {/* Identifier Telemetry */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 shadow-inner flex flex-col justify-center group relative overflow-hidden">
                     <h3 className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-4 group-hover:text-cyan-400 transition-colors uppercase">Target Telemetry</h3>
                     <ul className="space-y-3 sm:space-y-4 font-mono relative z-10">
@@ -548,7 +523,7 @@ const HomePage = ({ setIsModalOpen }) => {
                     </ul>
                   </motion.div>
 
-                  {/* Compromised Assets Container - COMPACTED */}
+                  {/* Compromised Assets Container */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col shadow-inner group relative overflow-hidden">
                     <div className="flex justify-between items-center mb-4 relative z-10">
                       <h3 className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider group-hover:text-cyan-400 transition-colors uppercase">Compromised Assets</h3>
