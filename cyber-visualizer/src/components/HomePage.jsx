@@ -61,12 +61,16 @@ const HomePage = () => {
     { name: "AWS S3 Bucket Leak", target: "2.4GB Data", severity: "MEDIUM", color: "bg-yellow-500", time: "15m ago" }
   ];
 
+  const closeModal = () => setResult(null);
+
+  // Auto-switch to LOCAL for Aadhaar/PAN
   useEffect(() => {
     if (type === "AADHAAR" || type === "PAN") {
       setMode("LOCAL");
     }
   }, [type]);
 
+  // Dispatch event to hide header when modal opens
   useEffect(() => {
     const event = new CustomEvent("modalStateChange", { detail: { isModalOpen: !!result } });
     window.dispatchEvent(event);
@@ -75,6 +79,7 @@ const HomePage = () => {
     };
   }, [result]);
 
+  // Cycle scanning text
   useEffect(() => {
     let interval;
     if (loading) {
@@ -87,6 +92,15 @@ const HomePage = () => {
     }
     return () => clearInterval(interval);
   }, [loading]);
+
+  // NEW: Press Escape to close modal
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") closeModal();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
 
   const handleInputChange = (e) => {
     let val = e.target.value;
@@ -125,6 +139,9 @@ const HomePage = () => {
         response = await fetch(`${API_BASE_URL}/api/scan`, {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier: currentQuery, type })
         });
+        
+        if (!response.ok) throw new Error("API Network Error");
+        
         data = await response.json();
         finalStatus = data.status || "Safe";
         finalResultData = { ...data, scanType: type, queryId: currentQuery };
@@ -133,6 +150,9 @@ const HomePage = () => {
         setResult(finalResultData);
       } else {
         response = await fetch(`${API_BASE_URL}/api/attacks/search?query=${currentQuery}`);
+        
+        if (!response.ok) throw new Error("Local Network Error");
+        
         data = await response.json();
 
         await new Promise(r => setTimeout(r, 1500)); 
@@ -151,6 +171,7 @@ const HomePage = () => {
         }
       }
 
+      // Save to local history
       const currentUser = JSON.parse(localStorage.getItem("user"));
       if (currentUser && !currentUser.isGuest && currentUser.email) {
         const historyKey = `search_history_${currentUser.email}`;
@@ -172,14 +193,16 @@ const HomePage = () => {
       }
 
       setIdentifier("");
+      
     } catch (error) {
+      // NEW: Visible Error Handling
       console.error("Scan failed:", error);
+      alert("CONNECTION FAILED: Unable to reach the global threat database. Please check your network or ensure the backend server is running.");
+    } finally {
+      // NEW: Ensure loading state is reset even if it fails
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
-
-  const closeModal = () => setResult(null);
 
   const glassPanel = "bg-[#0f172a]/70 backdrop-blur-2xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-slate-500/50 relative overflow-hidden";
 
@@ -214,7 +237,6 @@ const HomePage = () => {
 
   return (
     <>
-      {/* Background ambient light elements */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div 
           animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -228,7 +250,6 @@ const HomePage = () => {
 
       <motion.div key="home-page-container" variants={containerVars} initial="hidden" animate="visible" className="flex-1 w-full flex flex-col px-3 sm:px-4 md:px-8 py-6 overflow-y-auto relative z-10 custom-scrollbar font-sans text-slate-300">
         
-        {/* Header Title */}
         <motion.div variants={itemVars} className="text-center mt-2 sm:mt-4 mb-6 sm:mb-10 px-2">
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-widest mb-2 sm:mb-3 drop-shadow-xl">
             CYBER ATTACK <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">VISUALIZER</span>
@@ -236,7 +257,6 @@ const HomePage = () => {
           <p className="text-slate-400 text-xs sm:text-sm md:text-base font-medium tracking-wide">Real-Time Breach Detection & Exposure Monitoring</p>
         </motion.div>
 
-        {/* Professional Search Panel */}
         <motion.div variants={itemVars} className={`max-w-4xl w-full mx-auto rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-10 ${glassPanel}`}>
           
           <div className="flex justify-center mb-6 sm:mb-8">
@@ -274,7 +294,6 @@ const HomePage = () => {
 
           <div className={`mt-2 sm:mt-4 p-2 bg-slate-900/80 backdrop-blur-2xl border ${loading ? 'border-cyan-400 shadow-[0_0_40px_rgba(6,182,212,0.2)]' : 'border-cyan-500/20 hover:border-cyan-500/50 focus-within:border-cyan-400'} rounded-xl sm:rounded-2xl flex flex-col md:flex-row gap-2 sm:gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-500 relative overflow-hidden group`}>
             
-            {/* Background Grid Pattern during scan */}
             <AnimatePresence>
               {loading && (
                 <motion.div 
@@ -288,7 +307,6 @@ const HomePage = () => {
               )}
             </AnimatePresence>
 
-            {/* Sweeping Laser Animation */}
             {loading && (
               <motion.div
                 className="absolute left-0 right-0 h-32 bg-gradient-to-b from-transparent via-cyan-500/20 to-cyan-400/40 border-b-2 border-cyan-400 shadow-[0_5px_15px_rgba(6,182,212,0.5)] z-0 pointer-events-none"
@@ -333,10 +351,8 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* BOTTOM WIDGETS AREA */}
         <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mt-auto max-w-5xl w-full mx-auto">
           
-          {/* SYSTEM ONLINE STATUS ROW */}
           <div className="col-span-full mb-[-0.5rem] sm:mb-[-1rem] px-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
                <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5">
@@ -350,7 +366,6 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* RECENT BREACH TICKER */}
           <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={glassPanel}>
             <div className="flex justify-between items-center mb-4 sm:mb-5 border-b border-slate-700/50 pb-2.5 sm:pb-3 relative z-10">
               <h3 className="text-xs sm:text-sm font-bold text-white tracking-widest flex items-center gap-2">
@@ -384,7 +399,6 @@ const HomePage = () => {
             </div>
           </motion.div>
 
-          {/* CYBER RADAR */}
           <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={`${glassPanel} flex flex-col justify-between min-h-[180px] sm:min-h-[220px] !p-0`}>
             
             <div className="flex justify-between items-center border-b border-slate-700/50 p-4 sm:p-6 relative z-10 bg-[#0f172a]/40 backdrop-blur-sm">
@@ -398,10 +412,8 @@ const HomePage = () => {
               </div>
             </div>
             
-            {/* Radar Canvas Container */}
             <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-b-2xl">
               
-              {/* Cyber Grid Background */}
               <div 
                 className="absolute inset-0 opacity-20 pointer-events-none" 
                 style={{
@@ -410,7 +422,6 @@ const HomePage = () => {
                 }}
               />
 
-              {/* Rotating Radar Sweep */}
               <div 
                 className="absolute w-[200%] h-[200%] rounded-full animate-[spin_4s_linear_infinite] pointer-events-none"
                 style={{
@@ -418,21 +429,17 @@ const HomePage = () => {
                 }}
               />
 
-              {/* Target Rings (Responsive sizes) */}
               <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border border-cyan-500/20 rounded-full pointer-events-none" />
               <div className="absolute w-32 h-32 sm:w-40 sm:h-40 border border-cyan-500/30 rounded-full border-dashed animate-[spin_15s_linear_infinite_reverse] pointer-events-none" />
               <div className="absolute w-12 h-12 sm:w-16 sm:h-16 border border-cyan-500/50 rounded-full flex items-center justify-center pointer-events-none">
                 <Crosshair size={20} className="sm:w-6 sm:h-6 text-cyan-500/40 animate-pulse" />
               </div>
 
-              {/* Nodes and Network Overlay */}
               <div className="relative w-full h-full pointer-events-none">
-                 {/* Interconnecting Network Lines */}
                  <svg className="absolute inset-0 w-full h-full opacity-60">
                    <path d="M 30% 45% L 50% 65% L 75% 35%" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="animate-pulse" />
                  </svg>
 
-                 {/* Nodes */}
                  <div className="absolute top-[45%] left-[30%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2 sm:w-3 h-2 sm:h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,1)]" />
                    <div className="absolute w-6 sm:w-8 h-6 sm:h-8 border border-cyan-400 rounded-full animate-ping opacity-50" />
@@ -450,7 +457,6 @@ const HomePage = () => {
                  </div>
               </div>
 
-              {/* Background Watermark Icon */}
               <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-slate-700/30 pointer-events-none">
                 <Shield size={60} className="sm:w-[90px] sm:h-[90px]" strokeWidth={1} />
               </div>
@@ -458,10 +464,9 @@ const HomePage = () => {
           </motion.div>
         </motion.div>
 
-        {/* Footer Area */}
         <motion.footer variants={itemVars} className="mt-10 sm:mt-14 mb-4 border-t border-slate-800/60 pt-6 sm:pt-8 pb-4 text-center max-w-5xl w-full mx-auto">
           <p className="text-slate-500 text-[10px] sm:text-xs mb-3 font-semibold tracking-widest uppercase">
-            Developer:              CoodingN00b7
+            Development Team: Fardeen Akmal | Jigisha Naidu | Sushil Nirmal | Suvajit Ghosh
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4 text-[8px] sm:text-[9px] text-slate-600 font-mono tracking-widest uppercase">
             <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">DPDP Act 2023 Compliant</span>
@@ -509,7 +514,6 @@ const HomePage = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
-                  {/* Needle Gauge visualizer */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center relative shadow-inner">
                     <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</span>
                     <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6">
