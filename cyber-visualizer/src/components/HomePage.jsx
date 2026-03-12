@@ -17,9 +17,9 @@ import {
   Activity,
   Server,
   Crosshair,
-  Loader2,
   Lock,
-  Database
+  Database,
+  Terminal
 } from "lucide-react";
 
 const HomePage = ({ setIsModalOpen }) => {
@@ -28,13 +28,34 @@ const HomePage = ({ setIsModalOpen }) => {
   const [type, setType] = useState("EMAIL");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [hackerText, setHackerText] = useState("START SCAN");
+  
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // Tell the App component to hide/show the header when result changes
   useEffect(() => {
     if (setIsModalOpen) {
       setIsModalOpen(!!result);
     }
   }, [result, setIsModalOpen]);
+
+  // Hacking Animation Effect for Scan Button
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      const hexChars = "0123456789ABCDEF";
+      interval = setInterval(() => {
+        let str = "";
+        for (let i = 0; i < 8; i++) {
+          str += hexChars[Math.floor(Math.random() * 16)];
+        }
+        setHackerText(`INJECTING 0x${str}`);
+      }, 50); // Rapid cycle every 50ms
+    } else {
+      setHackerText("START SCAN");
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const scanTypes = [
     { id: "EMAIL", label: "Email", icon: <Mail size={16} className="sm:w-5 sm:h-5" /> },
@@ -96,8 +117,8 @@ const HomePage = ({ setIsModalOpen }) => {
     let finalStatus = "Safe";
     let finalResultData = null; 
 
-    // Simulate network delay for UI polish
-    await new Promise(resolve => setTimeout(resolve, 600));
+    // Simulate network delay for the cyber animation to play out
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
       let response;
@@ -218,7 +239,6 @@ const HomePage = ({ setIsModalOpen }) => {
 
   return (
     <>
-      {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div 
           animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -232,7 +252,6 @@ const HomePage = ({ setIsModalOpen }) => {
 
       <motion.div key="home-page-container" variants={containerVars} initial="hidden" animate="visible" className="flex-1 w-full flex flex-col px-3 sm:px-4 md:px-8 py-6 overflow-y-auto relative z-10 custom-scrollbar font-sans text-slate-300">
         
-        {/* Header Title */}
         <motion.div variants={itemVars} className="text-center mt-2 md:mt-4 mb-8 md:mb-10">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest mb-2 md:mb-3 drop-shadow-xl">
             CYBER ATTACK <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">VISUALIZER</span>
@@ -253,7 +272,6 @@ const HomePage = ({ setIsModalOpen }) => {
             </div>
           </div>
 
-          {/* Scan Types */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap justify-center gap-2 sm:gap-4 mb-6 md:mb-8">
             <AnimatePresence>
               {scanTypes.map((t) => (
@@ -269,7 +287,7 @@ const HomePage = ({ setIsModalOpen }) => {
             </AnimatePresence>
           </div>
 
-          {/* Search Input and Button */}
+          {/* Search Input and Hacking Animation Button */}
           <div className="mt-4 p-2 bg-slate-900/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl flex flex-col sm:flex-row gap-3 shadow-[0_8px_32px_rgba(6,182,212,0.1)] focus-within:shadow-[0_8px_40px_rgba(6,182,212,0.2)] focus-within:border-cyan-500/50 transition-all duration-300">
             <input
               value={identifier} onChange={handleInputChange} placeholder={`Enter ${type.toLowerCase()}...`}
@@ -283,30 +301,23 @@ const HomePage = ({ setIsModalOpen }) => {
               transition={clickSpring}
               onClick={handleSearch} 
               disabled={loading}
-              className={`px-6 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold sm:min-w-[180px] w-full sm:w-auto overflow-hidden relative ${
+              className={`px-6 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold sm:min-w-[200px] w-full sm:w-auto overflow-hidden relative transition-all duration-300 ${
                 loading 
-                ? "bg-slate-700 text-slate-300 cursor-not-allowed border border-slate-600/50" 
+                ? "bg-slate-900 text-cyan-400 border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.3)]" 
                 : "bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] border border-cyan-500/20"
               }`}
             >
-              {loading ? (
-                <motion.div key="loadingContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 relative z-10">
-                  <Loader2 size={18} className="animate-spin text-cyan-400" />
-                  <span className="tracking-widest">SCANNING</span>
-                </motion.div>
-              ) : (
-                <motion.div key="scanContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 relative z-10">
-                  <Crosshair size={18} />
-                  <span className="tracking-widest">START SCAN</span>
-                </motion.div>
-              )}
+              <div className="flex items-center justify-center gap-2 relative z-10 font-mono tracking-wider">
+                {loading ? <Terminal size={16} className="animate-pulse" /> : <Crosshair size={18} />}
+                <span>{hackerText}</span>
+              </div>
               
-              {/* Cyber Security Pulses during loading */}
+              {/* Scanline effect during loading */}
               {loading && (
-                <>
-                  <motion.div initial={{ opacity: 0.4, scale: 0 }} animate={{ opacity: 0, scale: 2.2 }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut" }} className="absolute inset-0 bg-cyan-400 rounded-xl" />
-                  <motion.div initial={{ opacity: 0.2, scale: 0 }} animate={{ opacity: 0, scale: 1.8 }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut", delay: 0.4 }} className="absolute inset-0 bg-indigo-400 rounded-xl" />
-                </>
+                <motion.div 
+                  initial={{ top: "-100%" }} animate={{ top: "200%" }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  className="absolute left-0 right-0 h-4 bg-cyan-400/20 blur-sm pointer-events-none"
+                />
               )}
             </motion.button>
           </div>
@@ -391,17 +402,14 @@ const HomePage = ({ setIsModalOpen }) => {
                  <div className="absolute top-[45%] left-[30%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,1)]" />
                    <div className="absolute w-6 h-6 sm:w-8 sm:h-8 border border-cyan-400 rounded-full animate-ping opacity-50" />
-                   <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-cyan-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-cyan-500/30 shadow-lg">MUMBAI</span>
                  </div>
 
                  <div className="absolute top-[65%] left-[50%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_rgba(99,102,241,1)]" />
-                   <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-indigo-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-indigo-500/30 shadow-lg">PUNE</span>
                  </div>
 
                  <div className="absolute top-[35%] left-[75%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-purple-400 rounded-full shadow-[0_0_12px_rgba(168,85,247,1)]" />
-                   <span className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-purple-100 font-bold tracking-widest bg-slate-900/90 px-1.5 sm:px-2 py-0.5 rounded border border-purple-500/30 shadow-lg">NAGPUR</span>
                  </div>
               </div>
 
@@ -472,73 +480,49 @@ const HomePage = ({ setIsModalOpen }) => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
-                  {/* NEW PROFESSIONAL SPEEDOMETER GAUGE */}
+                  {/* SIMPLE & PERFECT SVG GAUGE */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`bg-slate-900/80 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-between relative shadow-inner group overflow-hidden ${modalData.gaugeShadow} transition-shadow duration-500`}>
                     
-                    {/* Background faint cyber grid */}
-                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, rgba(148,163,184,0.4) 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-
                     <h3 className="w-full text-left text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-2 relative z-10">RISK PROFILE</h3>
                     
-                    {/* Gauge Container */}
-                    <div className="relative w-full aspect-[2/1] mt-2 flex items-end justify-center z-10">
-                      <svg viewBox="0 0 200 110" className="w-[90%] h-auto overflow-visible drop-shadow-2xl">
+                    {/* Gauge Container - perfectly centered semi-circle */}
+                    <div className="relative w-40 sm:w-48 aspect-[2/1] mt-4 flex items-end justify-center z-10">
+                      <svg viewBox="0 0 100 55" className="w-full h-full overflow-visible">
+                        <defs>
+                          {/* Smooth Gradient for the track */}
+                          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#10b981" />   {/* Green */}
+                            <stop offset="33%" stopColor="#eab308" />  {/* Yellow */}
+                            <stop offset="66%" stopColor="#f97316" />  {/* Orange */}
+                            <stop offset="100%" stopColor="#ef4444" /> {/* Red */}
+                          </linearGradient>
+                        </defs>
+
+                        {/* Background Track */}
+                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="12" strokeLinecap="round" />
                         
-                        {/* 1. Track Background */}
-                        <circle cx="100" cy="100" r="75" fill="none" stroke="#1e293b" strokeWidth="16" strokeDasharray="314.16 500" transform="rotate(150 100 100)" strokeLinecap="round" />
-                        
-                        {/* 2. Colored Arc Segments (Total arc = 240 deg. Each 1/4 = 60 deg = 78.54 length) */}
-                        {/* Green: 0 to 25 */}
-                        <circle cx="100" cy="100" r="75" fill="none" stroke="#10b981" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(150 100 100)" />
-                        {/* Yellow: 25 to 50 */}
-                        <circle cx="100" cy="100" r="75" fill="none" stroke="#eab308" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(210 100 100)" />
-                        {/* Orange: 50 to 75 */}
-                        <circle cx="100" cy="100" r="75" fill="none" stroke="#f97316" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(270 100 100)" />
-                        {/* Red: 75 to 100 */}
-                        <circle cx="100" cy="100" r="75" fill="none" stroke="#ef4444" strokeWidth="16" strokeDasharray="78.54 500" transform="rotate(330 100 100)" />
+                        {/* Colored Gradient Track */}
+                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="url(#gaugeGradient)" strokeWidth="12" strokeLinecap="round" />
 
-                        {/* 3. Outer Tick Marks & Labels */}
-                        {[0, 20, 40, 60, 80, 100].map((val) => {
-                           // Mapping 0-100 to angle -120 to +120
-                           const angle = -120 + (val / 100) * 240;
-                           return (
-                              <g key={val} transform={`rotate(${angle} 100 100)`}>
-                                 {/* Tick line */}
-                                 <line x1="100" y1="12" x2="100" y2="18" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
-                                 {/* Label */}
-                                 <text x="100" y="8" fill="#94a3b8" fontSize="9" fontWeight="bold" textAnchor="middle" transform={`rotate(${-angle} 100 8)`}>
-                                    {val}
-                                 </text>
-                              </g>
-                           )
-                        })}
-
-                        {/* 4. Center Hub Display (Digital value inside the gauge) */}
-                        <text x="100" y="80" textAnchor="middle" fill="#ffffff" fontSize="24" fontWeight="900" className="font-mono tracking-tighter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
-                           {modalData.riskScore}
-                        </text>
-                        <text x="100" y="95" textAnchor="middle" fill="#64748b" fontSize="10" fontWeight="bold" className="tracking-widest">
-                           / 100
-                        </text>
-
-                        {/* 5. Animated Needle */}
+                        {/* Needle pivoting exactly from 50,50 */}
                         <motion.g
-                          initial={{ rotate: -120 }}
-                          animate={{ rotate: -120 + (modalData.riskScore / 100) * 240 }}
-                          transition={{ type: "spring", stiffness: 40, damping: 15, delay: 0.3 }}
-                          style={{ transformOrigin: "100px 100px" }}
+                          initial={{ rotate: -90 }}
+                          animate={{ rotate: (modalData.riskScore / 100) * 180 - 90 }}
+                          transition={{ type: "spring", stiffness: 50, damping: 15, delay: 0.2 }}
+                          style={{ transformOrigin: "50px 50px" }}
                         >
-                           {/* Needle Point */}
-                           <polygon points="98,100 102,100 100,32" fill="#f8fafc" className="drop-shadow-md" />
-                           {/* Center Pivot Base */}
-                           <circle cx="100" cy="100" r="5" fill="#0f172a" stroke="#cbd5e1" strokeWidth="2" />
+                           {/* The pointed needle */}
+                           <polygon points="47.5,50 52.5,50 50,12" fill="#f8fafc" />
+                           {/* The center pivot circle */}
+                           <circle cx="50" cy="50" r="5" fill="#0f172a" stroke="#cbd5e1" strokeWidth="1.5" />
                         </motion.g>
 
                       </svg>
                     </div>
 
-                    <div className="text-center mt-3 relative z-10 w-full">
+                    <div className="text-center mt-6 relative z-10 w-full">
                       <p className={`text-xl sm:text-2xl font-black tracking-widest uppercase drop-shadow-md ${modalData.riskColor}`}>{modalData.riskLevel}</p>
+                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-1">SCORE: {modalData.riskScore}/100</p>
                     </div>
                   </motion.div>
 
