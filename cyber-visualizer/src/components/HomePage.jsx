@@ -18,7 +18,6 @@ import {
   Server,
   Crosshair,
   Lock,
-  Database,
   Terminal
 } from "lucide-react";
 
@@ -480,12 +479,12 @@ const HomePage = ({ setIsModalOpen }) => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
-                  {/* SIMPLE & PERFECT SVG GAUGE */}
+                  {/* PERFECTLY CENTERED GAUGE */}
                   <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`bg-slate-900/80 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-between relative shadow-inner group overflow-hidden ${modalData.gaugeShadow} transition-shadow duration-500`}>
                     
                     <h3 className="w-full text-left text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-2 relative z-10">RISK PROFILE</h3>
                     
-                    {/* Gauge Container - perfectly centered semi-circle */}
+                    {/* Gauge Container - SVG is aligned to bottom center */}
                     <div className="relative w-40 sm:w-48 aspect-[2/1] mt-4 flex items-end justify-center z-10">
                       <svg viewBox="0 0 100 55" className="w-full h-full overflow-visible">
                         <defs>
@@ -498,25 +497,34 @@ const HomePage = ({ setIsModalOpen }) => {
                           </linearGradient>
                         </defs>
 
-                        {/* Background Track */}
+                        {/* Background Track (Grey) */}
                         <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="12" strokeLinecap="round" />
                         
-                        {/* Colored Gradient Track */}
+                        {/* Colored Gradient Track overlay */}
                         <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="url(#gaugeGradient)" strokeWidth="12" strokeLinecap="round" />
 
-                        {/* Needle pivoting exactly from 50,50 */}
-                        <motion.g
-                          initial={{ rotate: -90 }}
-                          animate={{ rotate: (modalData.riskScore / 100) * 180 - 90 }}
-                          transition={{ type: "spring", stiffness: 50, damping: 15, delay: 0.2 }}
-                          style={{ transformOrigin: "50px 50px" }}
-                        >
-                           {/* The pointed needle */}
-                           <polygon points="47.5,50 52.5,50 50,12" fill="#f8fafc" />
-                           {/* The center pivot circle */}
-                           <circle cx="50" cy="50" r="5" fill="#0f172a" stroke="#cbd5e1" strokeWidth="1.5" />
-                        </motion.g>
-
+                        {/* Needle Group - translated to exact center of the arc (50, 50) */}
+                        <g transform="translate(50, 50)">
+                          {/* Motion group wrapped securely with an invisible bounding box.
+                            This guarantees Framer Motion rotates EXACTLY around 0,0 locally.
+                          */}
+                          <motion.g
+                            initial={{ rotate: -90 }}
+                            animate={{ rotate: (modalData.riskScore / 100) * 180 - 90 }}
+                            transition={{ type: "spring", stiffness: 50, damping: 15, delay: 0.2 }}
+                            style={{ originX: "50%", originY: "50%" }}
+                          >
+                             {/* Invisible symmetrical bounding box forcing origin to 0,0 */}
+                             <circle cx="0" cy="0" r="45" fill="transparent" />
+                             
+                             {/* The pointed needle itself (pointing straight UP = 0 deg) */}
+                             <polygon points="-3,0 3,0 0,-42" fill="#f8fafc" />
+                             
+                             {/* The base pivot circle */}
+                             <circle cx="0" cy="0" r="5" fill="#0f172a" stroke="#cbd5e1" strokeWidth="1.5" />
+                             <circle cx="0" cy="0" r="1.5" fill="#cbd5e1" />
+                          </motion.g>
+                        </g>
                       </svg>
                     </div>
 
