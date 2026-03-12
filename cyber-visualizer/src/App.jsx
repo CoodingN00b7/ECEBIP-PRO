@@ -7,7 +7,6 @@ import RegisterPage from "./components/RegisterPage";
 import HomePage from "./components/HomePage";
 import DashboardPage from "./components/DashboardPage";
 
-// 1. Prevents unauthenticated users from accessing secure pages
 const ProtectedRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user) {
@@ -16,19 +15,9 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 2. Prevents guest users from accessing the dashboard
 const DashboardRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user || user.isGuest) {
-    return <Navigate to="/home" replace />;
-  }
-  return children;
-};
-
-// ---> NEW: 3. Prevents logged-in users from accessing Login/Register pages
-const PublicRoute = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (user) {
     return <Navigate to="/home" replace />;
   }
   return children;
@@ -42,12 +31,11 @@ function App() {
   
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // Reset dropdown when navigating
   useEffect(() => {
     setShowDropdown(false);
   }, [location.pathname]);
 
-  // Listen for the custom event dispatched by HomePage when scanning finishes
+  // Listens for the popup to open/close from HomePage
   useEffect(() => {
     const handleModalChange = (e) => setIsModalOpen(e.detail.isModalOpen);
     window.addEventListener("modalStateChange", handleModalChange);
@@ -66,12 +54,14 @@ function App() {
     navigate("/login");
   };
 
+  // Simple layout hiding: Hides on auth pages OR when a modal is open
   const hideLayout =
     location.pathname === "/login" ||
-    location.pathname === "/register";
+    location.pathname === "/register" ||
+    isModalOpen;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans flex flex-col overflow-hidden relative">
+    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans flex flex-col">
 
       <div
         className="fixed inset-0 z-0 opacity-20 pointer-events-none"
@@ -81,29 +71,29 @@ function App() {
         }}
       />
 
-      {/* Nav with slide-up and fade animations */}
       {!hideLayout && (
-        <nav className={`relative z-20 border-b border-white/5 bg-[#020617]/80 backdrop-blur-md px-4 sm:px-6 py-4 flex justify-between items-center shadow-lg transition-all duration-500 ease-in-out ${
-          isModalOpen ? '-translate-y-full opacity-0 pointer-events-none absolute w-full' : 'translate-y-0 opacity-100'
-        }`}>
+        <nav className="relative z-20 border-b border-white/5 bg-[#020617]/80 backdrop-blur-md px-6 py-4 flex justify-between items-center shadow-lg">
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Shield className="text-cyan-400 w-6 h-6 sm:w-8 sm:h-8 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+          <div className="flex items-center gap-3">
+            <Shield className="text-cyan-400 w-8 h-8 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
             <div>
-              <div className="font-black text-lg sm:text-xl text-white tracking-widest flex items-center gap-2">
+              <div className="font-black text-xl text-white tracking-widest">
                 ECEBIP{" "}
-                <span className="text-cyan-400 text-[10px] sm:text-xs border border-cyan-500/50 px-1 rounded bg-cyan-950/30">
+                <span className="text-cyan-400 text-xs border border-cyan-500/50 px-1 rounded bg-cyan-950/30">
                   PRO
                 </span>
+              </div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest">
+                G.V. Acharya Institute of Eng. & Tech.
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-4 text-xs sm:text-sm font-bold tracking-wide">
+          <div className="flex items-center gap-2 md:gap-4 text-sm font-bold tracking-wide">
             
             <Link
               to="/home"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300 ${isActive("/home")}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${isActive("/home")}`}
             >
               <Home size={18} />
               <span className="hidden md:inline">SCANNER HOME</span>
@@ -112,7 +102,7 @@ function App() {
             {!user?.isGuest && (
               <Link
                 to="/dashboard"
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300 ${isActive("/dashboard")}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${isActive("/dashboard")}`}
               >
                 <LayoutDashboard size={18} />
                 <span className="hidden md:inline">THREAT DASHBOARD</span>
@@ -120,13 +110,13 @@ function App() {
             )}
 
             {user && (
-              <div className="relative ml-1 sm:ml-4 pl-1 sm:pl-4 border-l border-white/10">
+              <div className="relative ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
                 <button 
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-1 sm:gap-2 text-slate-300 hover:text-white transition-colors focus:outline-none"
+                  className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors focus:outline-none"
                 >
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:bg-slate-700 transition-colors">
-                    <User size={16} />
+                  <div className="w-9 h-9 rounded-full bg-slate-800 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:bg-slate-700 transition-colors">
+                    <User size={18} />
                   </div>
                   <ChevronDown size={14} className={`text-slate-500 transition-transform ${showDropdown ? "rotate-180" : ""}`} />
                 </button>
@@ -159,22 +149,11 @@ function App() {
         </nav>
       )}
 
-      <div className="flex-grow relative z-10 overflow-y-auto">
+      <div className="flex-grow relative z-10">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
-          
-          {/* ---> NEW: Wrapped Login and Register with PublicRoute <--- */}
-          <Route path="/login" element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          } />
-          <Route path="/register" element={
-            <PublicRoute>
-              <RegisterPage />
-            </PublicRoute>
-          } />
-          
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/home" element={<ProtectedRoute><HomePage setIsModalOpen={setIsModalOpen} /></ProtectedRoute>} />
           <Route path="/dashboard" element={<DashboardRoute><DashboardPage setIsModalOpen={setIsModalOpen} /></DashboardRoute>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
