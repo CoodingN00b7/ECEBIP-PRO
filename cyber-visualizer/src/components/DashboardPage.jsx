@@ -42,6 +42,15 @@ export default function DashboardPage({ setIsModalOpen }) {
     }
   }, [selectedRecord, setIsModalOpen]);
 
+  // NEW: Escape key to close modal
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setSelectedRecord(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
   const loadUserData = () => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) {
@@ -85,7 +94,6 @@ export default function DashboardPage({ setIsModalOpen }) {
     }
   };
 
-  // Refined responsive glass panel
   const glassPanel = "bg-[#0f172a]/70 backdrop-blur-2xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 transition-all duration-300 hover:border-slate-500/50 hover:shadow-[0_8px_40px_0_rgba(6,182,212,0.1)] relative overflow-hidden";
   const containerVars = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
   const itemVars = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 350, damping: 25 } } };
@@ -145,7 +153,6 @@ export default function DashboardPage({ setIsModalOpen }) {
   return (
     <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 w-full flex flex-col px-3 sm:px-4 md:px-8 py-4 md:py-6 overflow-y-auto relative z-10 custom-scrollbar font-sans text-slate-300">
       
-      {/* HEADER */}
       <motion.div variants={itemVars} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 md:mb-8 border-b border-slate-800/80 pb-3 sm:pb-4 relative">
         <div className="flex items-center gap-2 sm:gap-3">
           <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-widest drop-shadow-md uppercase">
@@ -157,10 +164,8 @@ export default function DashboardPage({ setIsModalOpen }) {
         </div>
       </motion.div>
 
-      {/* TOP ROW: PROFILE & QUICK STATS */}
       <motion.div variants={itemVars} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 md:gap-6 mb-6 sm:mb-8">
         
-        {/* User Card */}
         <div className={`lg:col-span-5 flex items-center gap-3 sm:gap-4 md:gap-6 bg-gradient-to-br from-[#0f172a]/90 to-indigo-950/40 backdrop-blur-2xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-2xl sm:rounded-3xl p-4 md:p-6 relative overflow-hidden group`}>
           <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors duration-700" />
           <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] rotate-3 group-hover:rotate-0 transition-transform shrink-0">
@@ -177,7 +182,6 @@ export default function DashboardPage({ setIsModalOpen }) {
           </div>
         </div>
 
-        {/* Global Risk Score */}
         <div className={`${glassPanel} lg:col-span-3 flex flex-col items-center justify-center text-center py-5 sm:py-6`}>
           <p className="text-slate-400 text-[9px] sm:text-[10px] md:text-xs font-bold tracking-widest mb-2 sm:mb-3 uppercase">Safety Index</p>
           <div className="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28">
@@ -202,7 +206,6 @@ export default function DashboardPage({ setIsModalOpen }) {
           </p>
         </div>
 
-        {/* Action Metrics */}
         <div className={`${glassPanel} sm:col-span-2 lg:col-span-4 flex flex-col justify-center`}>
           <div className="flex items-center gap-2 mb-3 sm:mb-4 md:mb-5 border-b border-slate-700/50 pb-2 sm:pb-3">
             <Crosshair size={14} className="text-cyan-400"/> 
@@ -231,10 +234,8 @@ export default function DashboardPage({ setIsModalOpen }) {
         </div>
       </motion.div>
 
-      {/* MIDDLE ROW: CHARTS & API HEALTH */}
       <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-6 sm:mb-8">
         
-        {/* Timeline Area Chart */}
         <div className={`${glassPanel} lg:col-span-5 flex flex-col min-h-[220px] sm:min-h-[250px] md:min-h-[280px]`}>
           <div className="flex items-center justify-between mb-4 border-b border-slate-700/50 pb-2 sm:pb-3">
             <h3 className="font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm flex items-center gap-2 uppercase">
@@ -271,7 +272,6 @@ export default function DashboardPage({ setIsModalOpen }) {
           )}
         </div>
 
-        {/* Scan Type Distribution */}
         <div className={`${glassPanel} lg:col-span-3 flex flex-col min-h-[220px] sm:min-h-[250px] md:min-h-[280px]`}>
           <h3 className="mb-4 font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm border-b border-slate-700/50 pb-2 sm:pb-3 flex items-center gap-2 uppercase">
             <PieChart size={14} className="text-indigo-400 sm:w-4 sm:h-4" /> Vector Analysis
@@ -301,7 +301,6 @@ export default function DashboardPage({ setIsModalOpen }) {
           )}
         </div>
 
-        {/* API Health */}
         <div className={`${glassPanel} lg:col-span-4 flex flex-col`}>
           <div className="flex items-center justify-between mb-3 sm:mb-4 border-b border-slate-700/50 pb-2 sm:pb-3">
             <h3 className="font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm flex items-center gap-2 uppercase">
@@ -330,7 +329,6 @@ export default function DashboardPage({ setIsModalOpen }) {
         </div>
       </motion.div>
 
-      {/* BOTTOM ROW: ADVANCED HISTORY LEDGER - Card layout on Mobile, Table on Desktop */}
       <motion.div variants={itemVars} className={`${glassPanel} overflow-hidden flex flex-col flex-1 min-h-[350px]`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-5 border-b border-slate-700/50 pb-3 sm:pb-4 gap-3">
           <div>
@@ -352,7 +350,6 @@ export default function DashboardPage({ setIsModalOpen }) {
         
         {history.length > 0 ? (
           <>
-            {/* MOBILE VIEW (Stacked Cards) */}
             <div className="md:hidden flex flex-col space-y-3 pb-2">
               <AnimatePresence>
                 {history.map((record) => (
@@ -393,7 +390,6 @@ export default function DashboardPage({ setIsModalOpen }) {
               </AnimatePresence>
             </div>
 
-            {/* DESKTOP VIEW (Standard Table) */}
             <div className="hidden md:block overflow-x-auto -mx-4 px-4 flex-1 custom-scrollbar">
               <table className="w-full text-left text-sm border-collapse min-w-[650px]">
                 <thead className="text-slate-500 uppercase tracking-widest text-[9px] bg-slate-950/50 sticky top-0 z-10 backdrop-blur-md">
@@ -450,7 +446,6 @@ export default function DashboardPage({ setIsModalOpen }) {
         )}
       </motion.div>
 
-      {/* HISTORY MODAL (Fully Mobile Optimized) */}
       <AnimatePresence>
         {selectedRecord && modalData && (
           <motion.div 
@@ -462,7 +457,6 @@ export default function DashboardPage({ setIsModalOpen }) {
               className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-screen sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
             >
               
-              {/* Sticky Header inside Modal */}
               <div className="flex-none flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md">
                 <h2 className="text-[10px] sm:text-sm font-bold text-white tracking-wide flex items-center gap-1 sm:gap-2 w-[80%] sm:w-auto overflow-hidden">
                   <span className="whitespace-nowrap uppercase text-slate-400">Record:</span> 
@@ -478,12 +472,10 @@ export default function DashboardPage({ setIsModalOpen }) {
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
-                  {/* Needle Gauge Visualizer */}
                   <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl flex flex-col items-center justify-center relative shadow-inner">
                     <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</span>
                     
                     <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6">
-                      {/* SVG Arc Gauge */}
                       <svg viewBox="0 0 100 50" className="absolute top-0 left-0 w-full h-full overflow-visible z-0">
                         <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
                         <motion.path 
@@ -492,7 +484,6 @@ export default function DashboardPage({ setIsModalOpen }) {
                         />
                       </svg>
                       
-                      {/* Animated Gauge Needle */}
                       <motion.div
                         className="absolute bottom-0 z-10 rounded-t-full origin-bottom shadow-lg h-[36px] sm:h-[48px]"
                         style={{ 
@@ -505,7 +496,6 @@ export default function DashboardPage({ setIsModalOpen }) {
                         transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
                       />
                       
-                      {/* Needle center pivot dot */}
                       <div className="absolute bottom-[-4px] sm:bottom-[-5px] left-[calc(50%-4px)] sm:left-[calc(50%-5px)] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white border-2 border-slate-900 rounded-full z-20" />
                     </div>
                     
@@ -515,7 +505,6 @@ export default function DashboardPage({ setIsModalOpen }) {
                     </div>
                   </div>
 
-                  {/* Metadata Card */}
                   <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl shadow-inner flex flex-col justify-center">
                     <ul className="space-y-3 sm:space-y-4">
                       <li className="flex items-center text-[10px] sm:text-xs"><Filter size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Type:</span><span className="text-white font-bold">{selectedRecord.type}</span></li>
@@ -524,7 +513,6 @@ export default function DashboardPage({ setIsModalOpen }) {
                     </ul>
                   </div>
 
-                  {/* Compromised List */}
                   <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl shadow-inner flex flex-col">
                     <h3 className="text-[10px] sm:text-xs font-semibold text-slate-300 mb-3 sm:mb-4">Leak Contents:</h3>
                     <div className="space-y-2 sm:space-y-3 overflow-y-auto pr-1 custom-scrollbar max-h-32 md:max-h-none">
@@ -538,7 +526,6 @@ export default function DashboardPage({ setIsModalOpen }) {
                   </div>
                 </div>
 
-                {/* Recommendations */}
                 <div className={`p-4 sm:p-5 rounded-xl shadow-inner border ${modalData.isSafe ? 'bg-emerald-950/20 border-emerald-500/20' : 'bg-red-950/20 border-red-500/20'}`}>
                   <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 tracking-wide uppercase ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Recommended Countermeasures</h3>
                   <div className="space-y-1.5 pl-1 sm:pl-2">
