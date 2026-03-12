@@ -27,14 +27,21 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
-  // NEW: State to track if the result card is open
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // Reset dropdown when navigating
   useEffect(() => {
     setShowDropdown(false);
   }, [location.pathname]);
+
+  // Listen for the custom event dispatched by HomePage when scanning finishes
+  useEffect(() => {
+    const handleModalChange = (e) => setIsModalOpen(e.detail.isModalOpen);
+    window.addEventListener("modalStateChange", handleModalChange);
+    return () => window.removeEventListener("modalStateChange", handleModalChange);
+  }, []);
 
   const isActive = (path) => {
     return location.pathname === path
@@ -53,7 +60,7 @@ function App() {
     location.pathname === "/register";
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans flex flex-col overflow-hidden relative">
 
       <div
         className="fixed inset-0 z-0 opacity-20 pointer-events-none"
@@ -63,9 +70,11 @@ function App() {
         }}
       />
 
-      {/* CHANGED: Added dynamic classes to slide the nav up when modal is open */}
+      {/* Nav with slide-up and fade animations */}
       {!hideLayout && (
-        <nav className={`relative z-20 border-b border-white/5 bg-[#020617]/80 backdrop-blur-md px-4 sm:px-6 py-4 flex justify-between items-center shadow-lg transition-transform duration-500 ease-in-out ${isModalOpen ? '-translate-y-full absolute w-full' : 'translate-y-0'}`}>
+        <nav className={`relative z-20 border-b border-white/5 bg-[#020617]/80 backdrop-blur-md px-4 sm:px-6 py-4 flex justify-between items-center shadow-lg transition-all duration-500 ease-in-out ${
+          isModalOpen ? '-translate-y-full opacity-0 pointer-events-none absolute w-full' : 'translate-y-0 opacity-100'
+        }`}>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Shield className="text-cyan-400 w-6 h-6 sm:w-8 sm:h-8 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
@@ -76,7 +85,6 @@ function App() {
                   PRO
                 </span>
               </div>
-            
             </div>
           </div>
 
@@ -145,9 +153,9 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          {/* CHANGED: Passing down setIsModalOpen to HomePage */}
+          {/* Passed setIsModalOpen to both components so the header hides correctly everywhere */}
           <Route path="/home" element={<ProtectedRoute><HomePage setIsModalOpen={setIsModalOpen} /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<DashboardRoute><DashboardPage /></DashboardRoute>} />
+          <Route path="/dashboard" element={<DashboardRoute><DashboardPage setIsModalOpen={setIsModalOpen} /></DashboardRoute>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
@@ -157,4 +165,3 @@ function App() {
 }
 
 export default App;
-
