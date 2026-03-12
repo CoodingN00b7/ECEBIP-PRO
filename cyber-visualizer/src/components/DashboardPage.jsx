@@ -480,19 +480,37 @@ export default function DashboardPage({ setIsModalOpen }) {
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   
-                  {/* Risk Profile Card */}
+                  {/* ---> FIX: Updated Needle Gauge Visualizer <--- */}
                   <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl flex flex-col items-center justify-center relative shadow-inner">
                     <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</span>
-                    <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6 flex items-end justify-center">
-                      <svg viewBox="0 0 100 50" className="w-full h-full overflow-visible">
+                    
+                    <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6">
+                      {/* SVG Arc Gauge */}
+                      <svg viewBox="0 0 100 50" className="absolute top-0 left-0 w-full h-full overflow-visible z-0">
                         <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
                         <motion.path 
                           initial={{ strokeDashoffset: 125.6 }} animate={{ strokeDashoffset: 125.6 - (modalData.score / 100) * 125.6 }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
                           d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modalData.gaugeColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={125.6}
                         />
                       </svg>
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="absolute bottom-0 w-2 h-2 sm:w-3 sm:h-3 bg-slate-300 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
+                      
+                      {/* Animated Gauge Needle */}
+                      <motion.div
+                        className="absolute bottom-0 z-10 rounded-t-full origin-bottom shadow-lg h-[36px] sm:h-[48px]"
+                        style={{ 
+                          left: "calc(50% - 3px)", 
+                          width: "6px", 
+                          backgroundColor: modalData.gaugeColor 
+                        }}
+                        initial={{ rotate: -90 }}
+                        animate={{ rotate: -90 + (modalData.score / 100) * 180 }}
+                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                      />
+                      
+                      {/* Needle center pivot dot */}
+                      <div className="absolute bottom-[-4px] sm:bottom-[-5px] left-[calc(50%-4px)] sm:left-[calc(50%-5px)] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white border-2 border-slate-900 rounded-full z-20" />
                     </div>
+                    
                     <div className="text-center mt-3 sm:mt-4">
                       <p className={`text-base sm:text-lg font-bold tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
                       <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">({modalData.score}/100)</p>
