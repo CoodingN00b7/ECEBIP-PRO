@@ -1,435 +1,334 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Shield, AlertTriangle, Activity, User, 
-  Mail, Clock, Search, Trash2, Server, Fingerprint, 
-  Globe, Smartphone, CreditCard, Wifi, Crosshair,
-  X, Filter, Calendar, LayoutTemplate 
-} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip as RechartsTooltip,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid
-} from "recharts";
+import { Shield, AlertTriangle, Activity, User, Mail, Clock, Search, Trash2, Server, Fingerprint, Globe, Smartphone, CreditCard, Wifi, X, Filter, Calendar, LayoutTemplate, Lock, TrendingUp, CheckCircle, Bell, MapPin } from "lucide-react";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip as RT, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
+import { useTheme } from "../ThemeContext";
 
-const PIE_COLORS = ["#06b6d4", "#6366f1", "#8b5cf6", "#3b82f6", "#eab308", "#10b981"];
+const DUMMY=[{id:1,query:"user@example.com",type:"EMAIL",status:"Exposed",timestamp:"2025-03-20T09:12:00Z",breachName:"Collection #1",severityScore:82,source:"HaveIBeenPwned",compromisedData:"Email,Password,Username"},{id:2,query:"9876543210",type:"PHONE",status:"Exposed",timestamp:"2025-03-20T08:44:00Z",breachName:"Truecaller 2023",severityScore:55,source:"LeakCheck",compromisedData:"Phone,Name,Location"},{id:3,query:"103.21.40.0",type:"IP",status:"Safe",timestamp:"2025-03-19T22:15:00Z",breachName:"None",severityScore:0,source:"AbuseIPDB",compromisedData:""},{id:4,query:"malware-cdn.xyz",type:"URL",status:"Exposed",timestamp:"2025-03-19T18:30:00Z",breachName:"VirusTotal 48/72",severityScore:94,source:"VirusTotal",compromisedData:"Malware,Phishing"},{id:5,query:"ABCPQ1234Z",type:"PAN",status:"Safe",timestamp:"2025-03-19T15:00:00Z",breachName:"None",severityScore:0,source:"System",compromisedData:""},{id:6,query:"rohit@hdfc.co.in",type:"EMAIL",status:"Exposed",timestamp:"2025-03-19T11:20:00Z",breachName:"LinkedIn 2023",severityScore:70,source:"BreachDirectory",compromisedData:"Email,Name,Phone"},{id:7,query:"123456789012",type:"AADHAAR",status:"Safe",timestamp:"2025-03-18T20:10:00Z",breachName:"None",severityScore:0,source:"System",compromisedData:""},{id:8,query:"192.168.1.105",type:"IP",status:"Exposed",timestamp:"2025-03-18T14:55:00Z",breachName:"AbuseIPDB",severityScore:63,source:"AbuseIPDB",compromisedData:"IP,ISP,ASN"}];
+const HOTSPOTS=[{city:"Mumbai",n:24,c:"#0ea5e9"},{city:"Delhi",n:18,c:"#f43f5e"},{city:"Bengaluru",n:11,c:"#8b5cf6"},{city:"Hyderabad",n:8,c:"#10b981"},{city:"Chennai",n:14,c:"#f97316"},{city:"Pune",n:6,c:"#ec4899"}];
+const FEEDS=[{name:"VirusTotal",r:"900M",ok:true,ms:"14ms",c:"#0ea5e9"},{name:"LeakCheck",r:"9.2B",ok:true,ms:"22ms",c:"#8b5cf6"},{name:"AbuseIPDB",r:"4.1B",ok:false,ms:"88ms",c:"#f97316"},{name:"Numverify",r:"2.8B",ok:true,ms:"18ms",c:"#10b981"}];
+const ALERTS=[{m:"New exposure: user@example.com",t:"5m",s:"HIGH"},{m:"IP 45.33.32.156 flagged in AbuseIPDB",t:"12m",s:"MEDIUM"},{m:"BreachDirectory: 840K new records",t:"34m",s:"INFO"},{m:"Aadhaar pattern match (3 identifiers)",t:"1h",s:"CRITICAL"}];
+const SEV_B=[{l:"Critical",v:4,c:"#f43f5e"},{l:"High",v:9,c:"#f97316"},{l:"Medium",v:6,c:"#eab308"},{l:"Low",v:2,c:"#22c55e"}];
+const TL=[{d:"Mar 15",s:3},{d:"Mar 16",s:7},{d:"Mar 17",s:5},{d:"Mar 18",s:9},{d:"Mar 19",s:14},{d:"Mar 20",s:11},{d:"Mar 21",s:6}];
+const PIE_C=["#0ea5e9","#6366f1","#8b5cf6","#10b981","#eab308","#ec4899"];
+const PREV={EMAIL:["Monitor transactions linked to this email.","Enable 2FA immediately.","Check OAuth apps for unauthorised access.","Never share OTPs via email."],PHONE:["Never share OTPs over phone calls.","Beware Smishing links.","Register on TRAI DND registry.","Contact carrier to prevent SIM-swap."],AADHAAR:["Lock biometrics via mAadhaar app.","Use VID instead of real Aadhaar.","Review auth history for anomalies.","Never share unmasked photocopies."],PAN:["Monitor CIBIL for unknown loans.","Check ITR for unauthorised returns.","Avoid sharing PAN on untrusted sites.","Report to NSDL immediately."],IP:["Restart router for fresh IP.","Use a no-log VPN.","Update router firmware.","Run a full malware scan."],URL:["Don't enter credentials here.","Report to Google Safe Browsing.","Enable browser phishing protection.","Clear cache, cookies and storage."]};
+const AD={CRITICAL:"bg-rose-500",HIGH:"bg-orange-500",MEDIUM:"bg-amber-500",INFO:"bg-sky-500"};
+const AT={CRITICAL:"text-rose-500",HIGH:"text-orange-500",MEDIUM:"text-amber-500",INFO:"text-sky-500"};
+const fmtD=iso=>new Date(iso).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+const TIcon=({type,size=13})=>({EMAIL:<Mail size={size} style={{color:"#0ea5e9"}}/>,URL:<Globe size={size} style={{color:"#6366f1"}}/>,IP:<Wifi size={size} style={{color:"#22d3ee"}}/>,PHONE:<Smartphone size={size} style={{color:"#10b981"}}/>,AADHAAR:<Shield size={size} style={{color:"#f97316"}}/>,PAN:<CreditCard size={size} style={{color:"#eab308"}}/>}[type]||<Search size={size} style={{color:"var(--text-3)"}}/>);
 
-const preventionMethods = {
-  EMAIL: ["Monitor financial transactions linked with Email.", "Enable Two-Factor Authentication (2FA) immediately.", "Check your connected accounts for unauthorized access.", "Avoid sharing sensitive data via email replies."],
-  PHONE: ["Never share OTPs or banking PINs over phone calls.", "Be wary of SMS phishing (Smishing) containing links.", "Register number on Do Not Call (DND) registry.", "Contact your carrier to prevent SIM swapping."],
-  AADHAAR: ["Lock your Aadhaar biometrics using mAadhaar app.", "Use Virtual ID (VID) instead of real Aadhaar number.", "Check your Aadhaar authentication history for anomalies.", "Never share unmasked photocopies of your Aadhaar."],
-  PAN: ["Monitor financial transactions linked with PAN.", "Check your credit report for unknown loans.", "Avoid sharing PAN on untrusted websites.", "Report misuse to financial authorities."],
-  IP: ["Restart your router to obtain a new dynamic IP.", "Use a reputable VPN to mask your traffic.", "Ensure router's firmware is updated.", "Run a full malware scan on connected devices."],
-  URL: ["Do not enter any personal credentials on this domain.", "Report the malicious URL to Google Safe Browsing.", "Ensure browser web-protection is enabled.", "Clear browser cache, cookies, and history."]
-};
+export default function DashboardPage({setIsModalOpen}) {
+  const {dark}=useTheme();
+  const [user,setUser]=useState(null);
+  const [hist,setHist]=useState([]);
+  const [stats,setStats]=useState({total:0,exposed:0,safe:0,risk:100,typeData:[],tl:[]});
+  const [sel,setSel]=useState(null);
+  const [alertOpen,setAlertOpen]=useState(false);
 
-export default function DashboardPage({ setIsModalOpen }) {
-  const [user, setUser] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [stats, setStats] = useState({ total: 0, exposed: 0, safe: 0, riskScore: 100, typeData: [], timelineData: [] });
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  useEffect(()=>{if(setIsModalOpen)setIsModalOpen(!!sel);},[sel,setIsModalOpen]);
+  useEffect(()=>{const fn=e=>{if(e.key==="Escape")setSel(null);};window.addEventListener("keydown",fn);return()=>window.removeEventListener("keydown",fn);},[]);
+  useEffect(()=>{
+    const u=JSON.parse(localStorage.getItem("user")||"null");
+    if(u){setUser(u);const raw=JSON.parse(localStorage.getItem(`search_history_${u.email}`)||"[]");const d=raw.length?raw:DUMMY;setHist(d);calc(d);}
+  },[]);
 
-  useEffect(() => {
-    if (setIsModalOpen) {
-      setIsModalOpen(!!selectedRecord);
-    }
-  }, [selectedRecord, setIsModalOpen]);
-
-  // NEW: Escape key to close modal
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape") setSelectedRecord(null);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
-
-  const loadUserData = () => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
-      setUser(storedUser);
-      const historyKey = `search_history_${storedUser.email}`;
-      const storedHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
-      setHistory(storedHistory);
-      calculateMetrics(storedHistory);
-    }
+  const calc=d=>{
+    const exp=d.filter(x=>x.status==="Exposed").length,saf=d.filter(x=>x.status==="Safe").length;
+    const risk=!d.length?100:Math.max(0,Math.round(100-(exp/d.length)*100));
+    const tc={};d.forEach(x=>{tc[x.type]=(tc[x.type]||0)+1;});
+    const typeData=Object.keys(tc).map(k=>({name:k,value:tc[k]}));
+    const dc={};d.forEach(x=>{const l=new Date(x.timestamp).toLocaleDateString("en-IN",{month:"short",day:"numeric"});dc[l]=(dc[l]||0)+1;});
+    const tl=Object.keys(dc).slice(-7).map(k=>({d:k,s:dc[k]}));
+    setStats({total:d.length,exposed:exp,safe:saf,risk,typeData,tl});
   };
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
+  const clear=()=>{if(!window.confirm("Purge ledger?"))return;localStorage.removeItem(`search_history_${user.email}`);setHist(DUMMY);calc(DUMMY);};
 
-  const calculateMetrics = (data) => {
-    const exposedCount = data.filter(item => item.status === "Exposed").length;
-    const safeCount = data.filter(item => item.status === "Safe").length;
-    const risk = data.length === 0 ? 100 : Math.max(0, Math.round(100 - ((exposedCount / data.length) * 100)));
+  const modal=sel?(()=>{
+    const safe=sel.status==="Safe",score=safe?0:parseInt(sel.severityScore||85);
+    const list=sel.compromisedData?sel.compromisedData.split(",").map(s=>s.trim()):safe?["None"]:["Archived Threat Data"];
+    let level="SAFE",rc="#22c55e",gc="#22c55e";
+    if(!safe){if(score<40){level="LOW";rc="#eab308";gc="#eab308";}else if(score<75){level="MEDIUM";rc="#f97316";gc="#f97316";}else{level="CRITICAL";rc="#f43f5e";gc="#f43f5e";}}
+    return{safe,score,list,level,rc,gc,source:sel.source||(safe?"Clean":"Unknown"),breach:sel.breachName||(safe?"None":"Unknown"),date:fmtD(sel.timestamp)};
+  })():null;
 
-    const typeCounts = {};
-    data.forEach(item => { typeCounts[item.type] = (typeCounts[item.type] || 0) + 1; });
-    const typeData = Object.keys(typeCounts).map(key => ({ name: key, value: typeCounts[key] }));
-
-    const dateCounts = {};
-    data.forEach(item => {
-      const date = new Date(item.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-      dateCounts[date] = (dateCounts[date] || 0) + 1;
-    });
-    const timelineData = Object.keys(dateCounts).slice(-7).map(date => ({ date, scans: dateCounts[date] }));
-
-    setStats({ total: data.length, exposed: exposedCount, safe: safeCount, riskScore: risk, typeData, timelineData });
-  };
-
-  const handleClearHistory = () => {
-    if (window.confirm("CRITICAL WARNING: Purging intelligence ledger. This cannot be undone. Proceed?")) {
-      const historyKey = `search_history_${user.email}`;
-      localStorage.removeItem(historyKey);
-      setHistory([]);
-      calculateMetrics([]);
-    }
-  };
-
-  const glassPanel = "bg-[#0f172a]/70 backdrop-blur-2xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 transition-all duration-300 hover:border-slate-500/50 hover:shadow-[0_8px_40px_0_rgba(6,182,212,0.1)] relative overflow-hidden";
-  const containerVars = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
-  const itemVars = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 350, damping: 25 } } };
-
-  const formatDate = (isoString) => {
-    return new Date(isoString).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getTypeIcon = (type) => {
-    switch(type) {
-      case 'EMAIL': return <Mail size={14} className="text-blue-400" />;
-      case 'URL': return <Globe size={14} className="text-indigo-400" />;
-      case 'IP': return <Wifi size={14} className="text-cyan-400" />;
-      case 'PHONE': return <Smartphone size={14} className="text-emerald-400" />;
-      case 'AADHAAR': return <Shield size={14} className="text-orange-400" />;
-      case 'PAN': return <CreditCard size={14} className="text-yellow-400" />;
-      default: return <Search size={14} className="text-slate-400" />;
-    }
-  };
-
-  const closeModal = () => setSelectedRecord(null);
-
-  const getModalData = () => {
-    if (!selectedRecord) return null;
-    const isSafe = selectedRecord.status === "Safe";
-    const source = selectedRecord.source || "System History";
-    const breachName = selectedRecord.breachName || (isSafe ? "None" : "Multiple Risks Detected");
-    const compromisedStr = selectedRecord.compromisedData || "";
-    const scanDate = formatDate(selectedRecord.timestamp);
-    const compromisedList = compromisedStr ? compromisedStr.split(',').map(s => s.trim()) : (isSafe ? ["None"] : ["Archived Threat Data"]);
-    const score = selectedRecord.severityScore !== undefined ? parseInt(selectedRecord.severityScore) : (isSafe ? 0 : 85);
-    
-    let riskLevel = "SAFE";
-    let riskColor = "text-emerald-400";
-    let gaugeColor = "#10b981";
-    
-    if (!isSafe) {
-      if (score < 40) { riskLevel = "LOW"; riskColor = "text-yellow-400"; gaugeColor = "#eab308"; }
-      else if (score < 75) { riskLevel = "MEDIUM"; riskColor = "text-orange-400"; gaugeColor = "#f97316"; }
-      else { riskLevel = "CRITICAL"; riskColor = "text-red-500"; gaugeColor = "#ef4444"; }
-    }
-
-    return { isSafe, source, breachName, compromisedList, score, riskLevel, riskColor, gaugeColor, scanDate };
-  };
-
-  const modalData = getModalData();
-
-  if (!user) return null;
-
-  const displayName = user.name || (user.email ? user.email.split('@')[0] : "PERSONALIZED");
-
-  const gaugeRadius = 40;
-  const gaugeCircumference = 2 * Math.PI * gaugeRadius;
-  const gaugeOffset = gaugeCircumference - (stats.riskScore / 100) * gaugeCircumference;
-  const gaugeColor = stats.riskScore > 80 ? "#10b981" : stats.riskScore > 50 ? "#eab308" : "#ef4444";
+  if(!user) return null;
+  const dn=user.name||user.email?.split("@")[0]||"Analyst";
+  const gR=40,gC=2*Math.PI*gR,gOff=gC-(stats.risk/100)*gC;
+  const gCol=stats.risk>80?"#22c55e":stats.risk>50?"#eab308":"#f43f5e";
+  const tl=stats.tl.length>=3?stats.tl:TL;
+  const ax=dark?"#2a4a63":"#6a9aba";
+  const tip={background:dark?"#060d1f":"#fff",border:"1px solid var(--border-glow)",borderRadius:10,fontFamily:"IBM Plex Mono",fontSize:11};
+  const stagger={hidden:{opacity:0},visible:{opacity:1,transition:{staggerChildren:.05}}};
+  const fUp={hidden:{opacity:0,y:12},visible:{opacity:1,y:0,transition:{type:"spring",stiffness:300,damping:24}}};
 
   return (
-    <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 w-full flex flex-col px-3 sm:px-4 md:px-8 py-4 md:py-6 overflow-y-auto relative z-10 custom-scrollbar font-sans text-slate-300">
-      
-      <motion.div variants={itemVars} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 md:mb-8 border-b border-slate-800/80 pb-3 sm:pb-4 relative">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-widest drop-shadow-md uppercase">
-            {displayName}'S <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">DASHBOARD</span>
-          </h1>
-          <span className="flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] md:text-[10px] font-bold text-emerald-400 tracking-widest animate-pulse mt-0.5 sm:mt-0">
-            <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-emerald-400" /> LIVE
-          </span>
-        </div>
-      </motion.div>
+    <>
+    <motion.div variants={stagger} initial="hidden" animate="visible"
+      className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 py-4 overflow-y-auto relative z-10"
+      style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-1)"}}>
 
-      <motion.div variants={itemVars} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 md:gap-6 mb-6 sm:mb-8">
-        
-        <div className={`lg:col-span-5 flex items-center gap-3 sm:gap-4 md:gap-6 bg-gradient-to-br from-[#0f172a]/90 to-indigo-950/40 backdrop-blur-2xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-2xl sm:rounded-3xl p-4 md:p-6 relative overflow-hidden group`}>
-          <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors duration-700" />
-          <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] rotate-3 group-hover:rotate-0 transition-transform shrink-0">
-            <User size={24} className="sm:w-[26px] sm:h-[26px] md:w-[30px] md:h-[30px]" />
-          </div>
-          <div className="z-10 flex-1 min-w-0">
-            <h2 className="text-base sm:text-lg md:text-2xl font-bold text-white tracking-wide mb-1 truncate">{user.name || "Analyst Profile"}</h2>
-            <div className="flex items-center gap-2 text-cyan-300/80 text-[10px] md:text-sm mb-2 font-mono bg-slate-950/50 w-max max-w-full px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-slate-800">
-              <Mail size={12} className="text-cyan-500 shrink-0" /> <span className="truncate">{user.email}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-slate-400 text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest font-bold">
-              <Fingerprint size={12} className="text-indigo-400 shrink-0" /> <span className="hidden xs:inline">Clearance:</span> <span className="text-indigo-300">Level 4</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={`${glassPanel} lg:col-span-3 flex flex-col items-center justify-center text-center py-5 sm:py-6`}>
-          <p className="text-slate-400 text-[9px] sm:text-[10px] md:text-xs font-bold tracking-widest mb-2 sm:mb-3 uppercase">Safety Index</p>
-          <div className="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28">
-            <svg viewBox="0 0 112 112" className="w-full h-full transform -rotate-90">
-              <circle cx="56" cy="56" r={gaugeRadius} stroke="#1e293b" strokeWidth="8" fill="none" />
-              <circle 
-                cx="56" cy="56" r={gaugeRadius} stroke={gaugeColor} strokeWidth="8" fill="none"
-                strokeDasharray={gaugeCircumference} strokeDashoffset={gaugeOffset} strokeLinecap="round"
-                className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_currentColor]"
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center">
-              <span className="text-2xl sm:text-3xl font-black text-white leading-none">{stats.riskScore}</span>
-            </div>
-          </div>
-          <p className={`text-[8px] sm:text-[9px] md:text-[11px] font-bold tracking-widest uppercase mt-3 px-2 sm:px-3 py-1 rounded-full border ${
-            stats.riskScore > 80 ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 
-            stats.riskScore > 50 ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 
-            'text-red-400 border-red-500/30 bg-red-500/10'
-          }`}>
-            {stats.riskScore > 80 ? 'Optimal' : stats.riskScore > 50 ? 'Warning' : 'Critical'}
-          </p>
-        </div>
-
-        <div className={`${glassPanel} sm:col-span-2 lg:col-span-4 flex flex-col justify-center`}>
-          <div className="flex items-center gap-2 mb-3 sm:mb-4 md:mb-5 border-b border-slate-700/50 pb-2 sm:pb-3">
-            <Crosshair size={14} className="text-cyan-400"/> 
-            <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-white tracking-widest uppercase">Threat Summary</h3>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-center group">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700">
-                  <Search size={12} className="text-cyan-400 sm:w-3.5 sm:h-3.5" />
-                </div>
-                <span className="text-slate-300 text-xs sm:text-sm font-semibold">Total Scans</span>
-              </div>
-              <span className="text-white font-black text-lg sm:text-xl">{stats.total}</span>
-            </div>
-            <div className="flex justify-between items-center group">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700">
-                  <AlertTriangle size={12} className="text-red-500 sm:w-3.5 sm:h-3.5" />
-                </div>
-                <span className="text-slate-300 text-xs sm:text-sm font-semibold">Exposed</span>
-              </div>
-              <span className="text-red-400 font-black text-lg sm:text-xl">{stats.exposed}</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-6 sm:mb-8">
-        
-        <div className={`${glassPanel} lg:col-span-5 flex flex-col min-h-[220px] sm:min-h-[250px] md:min-h-[280px]`}>
-          <div className="flex items-center justify-between mb-4 border-b border-slate-700/50 pb-2 sm:pb-3">
-            <h3 className="font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm flex items-center gap-2 uppercase">
-              <Activity size={14} className="text-cyan-400 sm:w-4 sm:h-4" /> Network Telemetry
-            </h3>
-            <span className="text-[8px] sm:text-[9px] text-slate-500 font-mono border border-slate-700 px-1.5 py-0.5 rounded uppercase">7D</span>
-          </div>
-          {stats.total > 0 ? (
-            <div className="flex-1 w-full overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="date" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} dy={5} />
-                  <YAxis stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} dx={0} allowDecimals={false} />
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '10px' }}
-                    itemStyle={{ color: '#06b6d4', fontWeight: 'bold' }}
-                  />
-                  <Area type="monotone" dataKey="scans" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#colorScans)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-600">
-              <Activity size={24} className="mb-2 opacity-20" />
-              <p className="text-[10px] sm:text-xs font-medium">Awaiting Data</p>
-            </div>
-          )}
-        </div>
-
-        <div className={`${glassPanel} lg:col-span-3 flex flex-col min-h-[220px] sm:min-h-[250px] md:min-h-[280px]`}>
-          <h3 className="mb-4 font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm border-b border-slate-700/50 pb-2 sm:pb-3 flex items-center gap-2 uppercase">
-            <PieChart size={14} className="text-indigo-400 sm:w-4 sm:h-4" /> Vector Analysis
-          </h3>
-          {stats.total > 0 ? (
-            <div className="flex-1 relative overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={stats.typeData} dataKey="value" innerRadius="60%" outerRadius="80%" stroke="none" paddingAngle={4}>
-                    {stats.typeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '10px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl sm:text-2xl font-black text-white">{stats.typeData.length}</span>
-                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Vectors</span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-600">
-              <PieChart size={24} className="mb-2 opacity-20" />
-              <p className="text-[10px] sm:text-xs font-medium">No vectors</p>
-            </div>
-          )}
-        </div>
-
-        <div className={`${glassPanel} lg:col-span-4 flex flex-col`}>
-          <div className="flex items-center justify-between mb-3 sm:mb-4 border-b border-slate-700/50 pb-2 sm:pb-3">
-            <h3 className="font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm flex items-center gap-2 uppercase">
-              <Server size={14} className="text-emerald-400 sm:w-4 sm:h-4" /> Integrations
-            </h3>
-            <span className="flex items-center gap-1 text-[8px] text-emerald-400 font-bold tracking-widest bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-              OPTIMAL
+      {/* Header */}
+      <motion.div variants={fUp} className="flex flex-col xs:flex-row xs:items-center justify-between gap-3 mb-4 pb-4" style={{borderBottom:"1px solid var(--divider)"}}>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <h1 className="text-xl sm:text-2xl font-bold" style={{color:"var(--text-1)"}}>
+              {dn.charAt(0).toUpperCase()+dn.slice(1)}'s{" "}
+              <span style={{background:"linear-gradient(90deg,#0ea5e9,#6366f1)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Dashboard</span>
+            </h1>
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,.1)",border:"1px solid rgba(34,197,94,.2)"}}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 blink inline-block"/>LIVE
             </span>
           </div>
-          <div className="flex-1 space-y-2">
-            {[
-              { name: "VirusTotal", latency: "14ms", color: "text-blue-400", bg: "bg-blue-400" },
-              { name: "LeakCheck", latency: "22ms", color: "text-purple-400", bg: "bg-purple-400" },
-              { name: "AbuseIPDB", latency: "18ms", color: "text-cyan-400", bg: "bg-cyan-400" },
-              { name: "Numverify", latency: "31ms", color: "text-emerald-400", bg: "bg-emerald-400" }
-            ].map((api, idx) => (
-              <div key={idx} className="flex items-center justify-between bg-[#0a0f1c] p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-700/50">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className={`w-1.5 h-1.5 rounded-full ${api.bg} shrink-0`} />
-                  <p className="text-[10px] sm:text-xs font-bold text-slate-200 truncate">{api.name}</p>
+          <p className="text-xs sm:text-sm" style={{color:"var(--text-3)"}}>Synced just now</p>
+        </div>
+        <motion.button onClick={()=>setAlertOpen(a=>!a)} whileTap={{scale:.96}}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass self-start xs:self-auto"
+          style={{color:"var(--text-1)"}}>
+          <Bell size={14} style={{color:"var(--accent)"}}/>Alerts
+          <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold mono" style={{fontSize:9}}>3</span>
+        </motion.button>
+      </motion.div>
+
+      {/* Alerts */}
+      <AnimatePresence>
+        {alertOpen&&(
+          <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="overflow-hidden mb-3">
+            <div className="glass overflow-hidden p-0">
+              <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
+                <span className="font-semibold text-sm flex items-center gap-2" style={{color:"var(--text-1)"}}><Bell size={13} style={{color:"var(--accent)"}}/>Alerts</span>
+                <button onClick={()=>setAlertOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-3)"}}><X size={14}/></button>
+              </div>
+              {ALERTS.map((a,i)=>(
+                <div key={i} className="flex items-center gap-3 px-4 py-3 row-hover transition-colors" style={{borderBottom:i<ALERTS.length-1?"1px solid var(--divider)":"none"}}>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${AD[a.s]}`}/>
+                  <p className="text-sm flex-1 min-w-0 truncate" style={{color:"var(--text-2)"}}>{a.m}</p>
+                  <span className={`text-[10px] font-bold shrink-0 mono ${AT[a.s]}`}>{a.s}</span>
+                  <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}} className="shrink-0">{a.t}</span>
                 </div>
-                <span className={`text-[9px] font-mono ${api.color}`}>{api.latency}</span>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 4 stat cards */}
+      <motion.div variants={fUp} className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">
+        {[{l:"Scans",v:stats.total,sub:"total",icon:Search,c:"#0ea5e9"},{l:"Exposed",v:stats.exposed,sub:`${stats.total?Math.round(stats.exposed/stats.total*100):0}%`,icon:AlertTriangle,c:"#f43f5e"},{l:"Safe",v:stats.safe,sub:"clean",icon:CheckCircle,c:"#22c55e"},{l:"Safety",v:stats.risk,sub:stats.risk>80?"Optimal":stats.risk>50?"Warning":"Critical",icon:Shield,c:gCol}].map(s=>{
+          const Icon=s.icon;
+          return(
+            <motion.div key={s.l} whileTap={{scale:.97}} className="glass flex items-center gap-3 p-3.5 sm:p-4">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:`${s.c}12`,border:`1px solid ${s.c}28`}}>
+                <Icon size={16} style={{color:s.c}}/>
+              </div>
+              <div className="min-w-0">
+                <div className="font-bold text-lg leading-tight stat-val mono">{s.v}</div>
+                <div className="text-[10px] leading-tight" style={{color:"var(--text-3)"}}>{s.l}</div>
+                <div className="text-[9px] leading-tight mono" style={{color:"var(--text-4)"}}>{s.sub}</div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+
+      {/* Profile + gauge — stacked on mobile */}
+      <motion.div variants={fUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 mb-3">
+        <div className="sm:col-span-1 lg:col-span-4 glass p-4 flex items-center gap-3.5 relative overflow-hidden">
+          <div style={{position:"absolute",top:0,right:0,width:"45%",height:"100%",background:"radial-gradient(ellipse at top right,rgba(14,165,233,.04) 0%,transparent 70%)",pointerEvents:"none"}}/>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{background:"linear-gradient(135deg,rgba(14,165,233,.12),rgba(99,102,241,.12))",border:"1px solid rgba(14,165,233,.2)"}}>
+            <User size={22} style={{color:"var(--accent)"}}/>
+          </div>
+          <div className="flex-1 min-w-0 z-10">
+            <h2 className="text-sm font-bold truncate" style={{color:"var(--text-1)"}}>{user.name||"Analyst"}</h2>
+            <div className="flex items-center gap-1.5 mb-1" style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-3)"}}>
+              <Mail size={9} style={{color:"var(--accent)",flexShrink:0}}/><span className="truncate">{user.email}</span>
+            </div>
+            <div className="flex items-center gap-3" style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>
+              <span className="flex items-center gap-1"><Fingerprint size={9} style={{color:"#8b5cf6"}}/>Lv.4</span>
+              <span className="flex items-center gap-1"><MapPin size={9} style={{color:"#f43f5e"}}/>India</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="sm:col-span-1 lg:col-span-3 glass p-4 flex flex-col items-center justify-center">
+          <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".12em",textTransform:"uppercase"}} className="mb-2">Safety Index</p>
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+            <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
+              <circle cx="56" cy="56" r={gR} stroke={dark?"#1e293b":"#e2e8f0"} strokeWidth="7" fill="none"/>
+              <circle cx="56" cy="56" r={gR} stroke={gCol} strokeWidth="7" fill="none" strokeDasharray={gC} strokeDashoffset={gOff} strokeLinecap="round" className="transition-all duration-1000 ease-out" style={{filter:`drop-shadow(0 0 6px ${gCol})`}}/>
+            </svg>
+            <div className="absolute flex flex-col items-center">
+              <span className="font-black text-2xl sm:text-3xl leading-none stat-val mono">{stats.risk}</span>
+            </div>
+          </div>
+          <span className="font-bold px-3 py-1 rounded-full border mt-2" style={{fontFamily:"IBM Plex Mono",fontSize:9,color:gCol,borderColor:gCol+"40",background:gCol+"0e"}}>
+            {stats.risk>80?"Optimal":stats.risk>50?"Warning":"Critical"}
+          </span>
+        </div>
+
+        {/* Severity bar — full width on mobile */}
+        <div className="sm:col-span-2 lg:col-span-5 glass p-4 flex flex-col">
+          <div className="flex items-center gap-2 mb-2 pb-2" style={{borderBottom:"1px solid var(--divider)"}}>
+            <TrendingUp size={12} style={{color:"#f97316"}}/><span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:600,color:"var(--text-2)",letterSpacing:".08em",textTransform:"uppercase"}}>Severity Breakdown</span>
+          </div>
+          <div className="flex-1" style={{minHeight:80}}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={SEV_B} margin={{top:4,right:0,left:-30,bottom:0}}>
+                <CartesianGrid strokeDasharray="3 3" stroke={dark?"rgba(56,189,248,.05)":"rgba(3,105,161,.07)"} vertical={false}/>
+                <XAxis dataKey="l" tick={{fill:ax,fontSize:9,fontFamily:"IBM Plex Mono"}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:ax,fontSize:9,fontFamily:"IBM Plex Mono"}} axisLine={false} tickLine={false}/>
+                <RT contentStyle={tip}/>
+                <Bar dataKey="v" radius={[3,3,0,0]}>{SEV_B.map((e,i)=><Cell key={i} fill={e.c}/>)}</Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Charts row — stacked on mobile */}
+      <motion.div variants={fUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 mb-3">
+        <div className="sm:col-span-1 lg:col-span-5 glass p-4 flex flex-col" style={{minHeight:200}}>
+          <div className="flex items-center justify-between mb-2 pb-2" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div className="flex items-center gap-1.5"><Activity size={12} style={{color:"var(--accent)"}}/><span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:600,color:"var(--text-2)",letterSpacing:".08em",textTransform:"uppercase"}}>Scan Activity</span></div>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:8,color:"var(--text-4)",border:"1px solid var(--border)",borderRadius:5,padding:"1px 6px"}}>7D</span>
+          </div>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={tl} margin={{top:4,right:2,left:-30,bottom:0}}>
+                <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0ea5e9" stopOpacity={dark?.2:.12}/><stop offset="100%" stopColor="#0ea5e9" stopOpacity={0}/></linearGradient></defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={dark?"rgba(56,189,248,.05)":"rgba(3,105,161,.07)"}/>
+                <XAxis dataKey="d" tick={{fill:ax,fontSize:9,fontFamily:"IBM Plex Mono"}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:ax,fontSize:9,fontFamily:"IBM Plex Mono"}} axisLine={false} tickLine={false}/>
+                <RT contentStyle={tip} itemStyle={{color:"#0ea5e9"}} labelStyle={{color:"var(--text-2)"}}/>
+                <Area type="monotone" dataKey="s" name="Scans" stroke="#0ea5e9" strokeWidth={2} fill="url(#sg)" dot={{fill:"#0ea5e9",r:3,strokeWidth:0}}/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="sm:col-span-1 lg:col-span-3 glass p-4 flex flex-col" style={{minHeight:200}}>
+          <div className="flex items-center gap-1.5 mb-2 pb-2" style={{borderBottom:"1px solid var(--divider)"}}>
+            <Filter size={12} style={{color:"#8b5cf6"}}/><span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:600,color:"var(--text-2)",letterSpacing:".08em",textTransform:"uppercase"}}>By Type</span>
+          </div>
+          {stats.typeData.length>0?(
+            <div className="flex-1 flex flex-col">
+              <ResponsiveContainer width="100%" height={100}>
+                <PieChart><Pie data={stats.typeData} cx="50%" cy="50%" innerRadius={24} outerRadius={42} dataKey="value" strokeWidth={0}>{stats.typeData.map((_,i)=><Cell key={i} fill={PIE_C[i%PIE_C.length]}/>)}</Pie><RT contentStyle={tip}/></PieChart>
+              </ResponsiveContainer>
+              <div className="space-y-1 mt-1">
+                {stats.typeData.map((d,i)=>(
+                  <div key={d.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full" style={{background:PIE_C[i%PIE_C.length]}}/><span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)"}}>{d.name}</span></div>
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:600,color:"var(--text-2)"}}>{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ):<div className="flex-1 flex items-center justify-center"><p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)",textTransform:"uppercase"}}>No data</p></div>}
+        </div>
+
+        <div className="sm:col-span-2 lg:col-span-4 glass p-4 flex flex-col">
+          <div className="flex items-center justify-between mb-2 pb-2" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div className="flex items-center gap-1.5"><Server size={12} style={{color:"#10b981"}}/><span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:600,color:"var(--text-2)",letterSpacing:".08em",textTransform:"uppercase"}}>Sources</span></div>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"#22c55e"}}>3/4 Online</span>
+          </div>
+          <div className="flex-1 space-y-2">
+            {FEEDS.map((f,i)=>(
+              <div key={i} className="flex items-center gap-2.5 px-3 py-2 rounded-xl row-hover transition-colors" style={{background:"var(--bg-inset)",border:"1px solid var(--border-sub)"}}>
+                <span className="w-2 h-2 rounded-full shrink-0" style={{background:f.c,boxShadow:`0 0 5px ${f.c}80`}}/>
+                <span className="text-sm font-medium flex-1 truncate" style={{color:"var(--text-1)"}}>{f.name}</span>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:600,color:"var(--text-2)"}}>{f.ms}</span>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:8,padding:"2px 5px",borderRadius:5,color:f.ok?"#22c55e":"#f97316",border:`1px solid ${f.ok?"rgba(34,197,94,.25)":"rgba(249,115,22,.25)"}`}}>{f.ok?"Online":"Degraded"}</span>
               </div>
             ))}
           </div>
         </div>
       </motion.div>
 
-      <motion.div variants={itemVars} className={`${glassPanel} overflow-hidden flex flex-col flex-1 min-h-[350px]`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-5 border-b border-slate-700/50 pb-3 sm:pb-4 gap-3">
+      {/* Hotspots — horizontal scroll on mobile */}
+      <motion.div variants={fUp} className="glass p-0 overflow-hidden mb-3">
+        <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
+          <div className="flex items-center gap-2"><MapPin size={13} style={{color:"#f43f5e"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Regional Hotspots</span></div>
+          <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-sky-500 blink"/><span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>Live</span></div>
+        </div>
+        <div className="flex overflow-x-auto" style={{scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}>
+          {HOTSPOTS.map((n,i)=>(
+            <div key={i} className="flex flex-col items-center py-3 px-4 shrink-0 row-hover transition-colors" style={{minWidth:72,borderRight:i<HOTSPOTS.length-1?"1px solid var(--divider)":"none"}}>
+              <div className="relative mb-1.5 w-2.5 h-2.5">
+                <div className="absolute inset-0 rounded-full opacity-40 animate-ping" style={{background:n.c}}/>
+                <div className="relative w-full h-full rounded-full" style={{background:n.c,boxShadow:`0 0 8px ${n.c}`}}/>
+              </div>
+              <span className="font-bold text-sm stat-val mono">{n.n}</span>
+              <span className="text-[9px] text-center mt-0.5" style={{color:"var(--text-3)"}}>{n.city}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Intelligence Ledger */}
+      <motion.div variants={fUp} className="glass p-0 overflow-hidden flex flex-col flex-1" style={{minHeight:320}}>
+        <div className="flex flex-col xs:flex-row xs:items-center justify-between px-4 py-3.5 gap-2.5" style={{borderBottom:"1px solid var(--divider)"}}>
           <div>
-            <h3 className="font-bold text-white tracking-widest text-[10px] sm:text-xs md:text-sm flex items-center gap-2 mb-1 uppercase">
-              <Clock size={14} className="text-indigo-400 sm:w-4 sm:h-4" /> Intelligence Ledger
-            </h3>
-            <p className="text-[9px] sm:text-[10px] text-slate-500 font-medium">Local security query history.</p>
+            <div className="flex items-center gap-2 mb-0.5"><Clock size={13} style={{color:"#8b5cf6"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Intelligence Ledger</span></div>
+            <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)",letterSpacing:".1em",textTransform:"uppercase"}}>{hist.length} records</p>
           </div>
-          {history.length > 0 && (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleClearHistory}
-              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 text-[9px] sm:text-[10px] font-bold text-red-400 border border-red-500/40 rounded-lg bg-red-950/30 uppercase w-full sm:w-auto shrink-0 transition-colors hover:bg-red-900/40"
-            >
-              <Trash2 size={12} className="sm:w-3.5 sm:h-3.5" /> Purge Records
+          {hist.length>0&&(
+            <motion.button whileTap={{scale:.96}} onClick={clear}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl self-start xs:self-auto"
+              style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:"#f43f5e",letterSpacing:".1em",textTransform:"uppercase",background:"rgba(244,63,94,.08)",border:"1px solid rgba(244,63,94,.2)",cursor:"pointer"}}>
+              <Trash2 size={11}/> Purge
             </motion.button>
           )}
         </div>
-        
-        {history.length > 0 ? (
-          <>
-            <div className="md:hidden flex flex-col space-y-3 pb-2">
-              <AnimatePresence>
-                {history.map((record) => (
-                  <motion.div 
-                    key={record.id}
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="bg-slate-800/40 p-3 sm:p-4 rounded-xl border border-slate-700/50 flex flex-col gap-2.5 sm:gap-3"
-                  >
-                    <div className="flex justify-between items-center border-b border-slate-700/50 pb-2 sm:pb-2.5">
-                      <span className="text-[9px] sm:text-[10px] text-slate-500 font-mono">
-                        {formatDate(record.timestamp)}
-                      </span>
-                      <div className="flex items-center gap-1.5 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-800">
-                        {getTypeIcon(record.type)}
-                        <span className="text-[8px] sm:text-[9px] font-bold tracking-widest text-slate-400">{record.type}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center pt-0.5">
-                      <div className="min-w-0 flex-1 pr-2 sm:pr-3">
-                        <div className="text-[11px] sm:text-xs font-bold text-slate-200 truncate">{record.query}</div>
-                        {record.status === "Exposed" && (
-                          <p className="text-[9px] sm:text-[10px] text-red-400 truncate mt-0.5">{record.breachName}</p>
-                        )}
-                      </div>
-                      
-                      <button
-                        onClick={() => setSelectedRecord(record)}
-                        className={`px-3 py-2 sm:px-3 sm:py-2 rounded-lg text-[9px] sm:text-[10px] font-black tracking-widest border uppercase shrink-0 flex items-center justify-center gap-1 ${
-                          record.status === "Exposed" ? "text-red-400 border-red-500/30 bg-red-950/20" : "text-emerald-400 border-emerald-500/20 bg-emerald-950/10"
-                        }`}
-                      >
-                        {record.status === "Exposed" ? "VIEW THREAT" : "VIEW CLEARED"}
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
 
-            <div className="hidden md:block overflow-x-auto -mx-4 px-4 flex-1 custom-scrollbar">
-              <table className="w-full text-left text-sm border-collapse min-w-[650px]">
-                <thead className="text-slate-500 uppercase tracking-widest text-[9px] bg-slate-950/50 sticky top-0 z-10 backdrop-blur-md">
-                  <tr>
-                    <th className="px-4 py-3 font-bold">Timestamp</th>
-                    <th className="px-4 py-3 font-bold">Target</th>
-                    <th className="px-4 py-3 font-bold text-center">Vector</th>
-                    <th className="px-4 py-3 font-bold text-right">Resolution</th>
+        {hist.length>0?(
+          <>
+            {/* Mobile card list */}
+            <div className="lg:hidden flex flex-col">
+              {hist.map(r=>(
+                <motion.div key={r.id} whileTap={{scale:.99}} onClick={()=>setSel(r)}
+                  className="flex items-center gap-3 px-4 py-3 row-hover transition-colors cursor-pointer" style={{borderBottom:"1px solid var(--divider)"}}>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${r.status==="Exposed"?"bg-rose-500":"bg-emerald-500"}`}/>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{color:"var(--text-1)"}}>{r.query}</p>
+                    <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>{fmtD(r.timestamp)} · {r.type}</p>
+                  </div>
+                  <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:6,flexShrink:0,color:r.status==="Exposed"?"#f43f5e":"#22c55e",border:`1px solid ${r.status==="Exposed"?"rgba(244,63,94,.25)":"rgba(34,197,94,.25)"}`,background:r.status==="Exposed"?"rgba(244,63,94,.07)":"rgba(34,197,94,.07)"}}>
+                    {r.status==="Exposed"?"THREAT":"SAFE"}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+            {/* Desktop table */}
+            <div className="hidden lg:block tbl-scroll flex-1" style={{scrollbarWidth:"thin"}}>
+              <table className="w-full text-left border-collapse" style={{minWidth:580}}>
+                <thead>
+                  <tr className="tbl-head sticky top-0 z-10">
+                    {["Timestamp","Target","Vector","Breach","Status"].map(h=>(
+                      <th key={h} className="px-4 py-3 border-b" style={{borderColor:"var(--divider)",fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:"var(--text-4)",letterSpacing:".12em",textTransform:"uppercase"}}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
+                <tbody>
                   <AnimatePresence>
-                    {history.map((record) => (
-                      <motion.tr 
-                        key={record.id}
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                        className="hover:bg-slate-800/20 transition-colors"
-                      >
-                        <td className="px-4 py-3 text-slate-500 whitespace-nowrap text-[10px] font-mono">
-                          {formatDate(record.timestamp)}
-                        </td>
-                        <td className="px-4 py-3 text-slate-200 text-xs font-medium">
-                          <div className="truncate max-w-[200px]">{record.query}</div>
-                          {record.status === "Exposed" && <p className="text-[9px] text-slate-500 truncate max-w-[200px]">{record.breachName}</p>}
+                    {hist.map((r,i)=>(
+                      <motion.tr key={r.id} initial={{opacity:0}} animate={{opacity:1}} transition={{delay:i*.02}}
+                        className="tbl-row cursor-pointer border-b last:border-0" style={{borderColor:"var(--divider)"}} onClick={()=>setSel(r)}>
+                        <td className="px-4 py-3"><span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-3)"}}>{fmtD(r.timestamp)}</span></td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm font-medium block truncate max-w-[160px]" style={{color:"var(--text-1)"}}>{r.query}</span>
+                          {r.breachName&&r.status==="Exposed"&&<span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}} className="block truncate max-w-[160px]">{r.breachName}</span>}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-2 bg-slate-900/60 w-max mx-auto px-2 py-1 rounded border border-slate-800">
-                            {getTypeIcon(record.type)}
-                            <span className="text-[9px] font-bold tracking-widest text-slate-400">{record.type}</span>
+                          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{background:"var(--bg-inset)",border:"1px solid var(--border-sub)"}}>
+                            <TIcon type={r.type}/><span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:"var(--text-3)",letterSpacing:".1em"}}>{r.type}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => setSelectedRecord(record)}
-                            className={`px-2 py-1.5 rounded text-[9px] font-black tracking-widest border uppercase inline-flex items-center gap-1.5 hover:bg-opacity-80 transition-colors ${
-                              record.status === "Exposed" ? "text-red-400 border-red-500/30 bg-red-950/20" : "text-emerald-400 border-emerald-500/20 bg-emerald-950/10"
-                            }`}
-                          >
-                            {record.status === "Exposed" ? "THREAT" : "CLEARED"}
-                          </button>
+                        <td className="px-4 py-3"><span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-3)"}} className="block truncate max-w-[140px]">{r.breachName||"—"}</span></td>
+                        <td className="px-4 py-3">
+                          <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,letterSpacing:".08em",padding:"2px 8px",borderRadius:7,color:r.status==="Exposed"?"#f43f5e":"#22c55e",border:`1px solid ${r.status==="Exposed"?"rgba(244,63,94,.25)":"rgba(34,197,94,.25)"}`,background:r.status==="Exposed"?"rgba(244,63,94,.07)":"rgba(34,197,94,.07)"}}>
+                            {r.status==="Exposed"?"THREAT":"CLEARED"}
+                          </span>
                         </td>
                       </motion.tr>
                     ))}
@@ -438,112 +337,92 @@ export default function DashboardPage({ setIsModalOpen }) {
               </table>
             </div>
           </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center py-10 text-slate-600 bg-slate-950/20 rounded-xl border border-dashed border-slate-800 mt-2">
-            <Shield size={24} className="mb-2 opacity-20" />
-            <p className="text-xs sm:text-sm font-bold">Ledger is Empty</p>
+        ):(
+          <div className="flex-1 flex flex-col items-center justify-center py-12" style={{color:"var(--text-4)"}}>
+            <Shield size={28} strokeWidth={1} className="mb-2 opacity-25"/>
+            <p style={{fontFamily:"IBM Plex Mono",fontSize:10,letterSpacing:".1em",textTransform:"uppercase",opacity:.4}}>Ledger is Empty</p>
           </div>
         )}
       </motion.div>
+    </motion.div>
 
-      <AnimatePresence>
-        {selectedRecord && modalData && (
-          <motion.div 
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(8px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#020617]/90 sm:bg-[#020617]/80 sm:p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} transition={{ type: "spring", stiffness: 350, damping: 25 }}
-              className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-screen sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
-            >
-              
-              <div className="flex-none flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md">
-                <h2 className="text-[10px] sm:text-sm font-bold text-white tracking-wide flex items-center gap-1 sm:gap-2 w-[80%] sm:w-auto overflow-hidden">
-                  <span className="whitespace-nowrap uppercase text-slate-400">Record:</span> 
-                  <span className="truncate">{selectedRecord.query}</span>
-                </h2>
-                <div className="flex items-center justify-end">
-                  <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 sm:p-2 flex-shrink-0">
-                    <X size={16} />
-                  </motion.button>
-                </div>
+    {/* ── Detail Modal ── */}
+    <AnimatePresence>
+      {sel&&modal&&(
+        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.2}}
+          className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 modal-overlay"
+          onClick={()=>setSel(null)}>
+          <motion.div initial={{y:50,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} transition={{type:"spring",stiffness:340,damping:28}}
+            onClick={e=>e.stopPropagation()}
+            className="modal-card w-full sm:max-w-4xl flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden"
+            style={{maxHeight:"92vh",border:`1px solid ${modal.safe?"rgba(34,197,94,.22)":"rgba(244,63,94,.28)"}`,boxShadow:"var(--shadow-modal)",fontFamily:"'DM Sans',sans-serif"}}>
+            <div className="flex-none flex items-center justify-between px-4 py-3.5" style={{borderBottom:"1px solid var(--divider)",background:dark?"rgba(6,13,31,.8)":"rgba(240,248,255,.95)"}}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 blink ${modal.safe?"bg-emerald-500":"bg-rose-500"}`}/>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:13,fontWeight:600,color:"var(--text-1)"}} className="truncate">{sel.query}</span>
               </div>
-
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                  
-                  <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl flex flex-col items-center justify-center relative shadow-inner">
-                    <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[10px] sm:text-xs font-semibold text-slate-300">Risk Profile</span>
-                    
-                    <div className="relative w-24 h-16 sm:w-32 sm:h-20 mt-6">
-                      <svg viewBox="0 0 100 50" className="absolute top-0 left-0 w-full h-full overflow-visible z-0">
-                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
-                        <motion.path 
-                          initial={{ strokeDashoffset: 125.6 }} animate={{ strokeDashoffset: 125.6 - (modalData.score / 100) * 125.6 }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                          d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modalData.gaugeColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={125.6}
-                        />
-                      </svg>
-                      
-                      <motion.div
-                        className="absolute bottom-0 z-10 rounded-t-full origin-bottom shadow-lg h-[36px] sm:h-[48px]"
-                        style={{ 
-                          left: "calc(50% - 3px)", 
-                          width: "6px", 
-                          backgroundColor: modalData.gaugeColor 
-                        }}
-                        initial={{ rotate: -90 }}
-                        animate={{ rotate: -90 + (modalData.score / 100) * 180 }}
-                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                      />
-                      
-                      <div className="absolute bottom-[-4px] sm:bottom-[-5px] left-[calc(50%-4px)] sm:left-[calc(50%-5px)] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white border-2 border-slate-900 rounded-full z-20" />
-                    </div>
-                    
-                    <div className="text-center mt-3 sm:mt-4">
-                      <p className={`text-base sm:text-lg font-bold tracking-widest ${modalData.riskColor}`}>{modalData.riskLevel}</p>
-                      <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">({modalData.score}/100)</p>
-                    </div>
+              <div className="flex items-center gap-2.5 shrink-0 ml-3">
+                <span className={`hidden xs:inline text-[10px] font-bold px-2.5 py-1 rounded-full border mono ${modal.safe?"text-emerald-500 border-emerald-500/30 bg-emerald-500/10":"text-rose-500 border-rose-500/30 bg-rose-500/10"}`}>{modal.safe?"✓ CLEAN":"⚠ BREACH"}</span>
+                <motion.button onClick={()=>setSel(null)} whileTap={{scale:.9}}
+                  className="w-9 h-9 rounded-full flex items-center justify-center"
+                  style={{background:"var(--bg-inset)",border:"1px solid var(--border)",color:"var(--text-3)"}}>
+                  <X size={14}/>
+                </motion.button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{scrollbarWidth:"thin"}}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div className="glass-inset p-4 flex flex-col items-center">
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Risk Score</p>
+                  <div className="relative w-28 h-[60px]">
+                    <svg viewBox="0 0 100 50" className="absolute inset-0 w-full h-full overflow-visible">
+                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--border)" strokeWidth="6" strokeLinecap="round"/>
+                      <motion.path initial={{strokeDashoffset:125.6}} animate={{strokeDashoffset:125.6-(modal.score/100)*125.6}} transition={{duration:1.3,ease:"easeOut",delay:.2}} d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modal.gc} strokeWidth="6" strokeLinecap="round" strokeDasharray={125.6} style={{filter:`drop-shadow(0 0 7px ${modal.gc})`}}/>
+                    </svg>
+                    <motion.div className="absolute bottom-0 rounded-t-full origin-bottom" style={{left:"calc(50% - 2.5px)",width:"5px",height:"42px",background:modal.gc}} initial={{rotate:-90}} animate={{rotate:-90+(modal.score/100)*180}} transition={{duration:1.3,ease:"easeOut",delay:.2}}/>
+                    <div className="absolute w-2.5 h-2.5 rounded-full z-10" style={{bottom:-4,left:"calc(50% - 5px)",background:"var(--bg-glass-2)",border:`2px solid ${modal.gc}`}}/>
                   </div>
-
-                  <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl shadow-inner flex flex-col justify-center">
-                    <ul className="space-y-3 sm:space-y-4">
-                      <li className="flex items-center text-[10px] sm:text-xs"><Filter size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Type:</span><span className="text-white font-bold">{selectedRecord.type}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Globe size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Source:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.source}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><AlertTriangle size={12} className="text-slate-500 w-5 sm:w-6" /><span className="text-slate-400 w-20 sm:w-24">Breach Event:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.breachName}</span></li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-slate-900/60 border border-slate-700/50 p-4 sm:p-5 rounded-xl shadow-inner flex flex-col">
-                    <h3 className="text-[10px] sm:text-xs font-semibold text-slate-300 mb-3 sm:mb-4">Leak Contents:</h3>
-                    <div className="space-y-2 sm:space-y-3 overflow-y-auto pr-1 custom-scrollbar max-h-32 md:max-h-none">
-                      {modalData.compromisedList.map((item, idx) => (
-                        <div key={idx} className={`flex items-center gap-2 sm:gap-3 bg-slate-800/50 border p-2 sm:p-3 rounded-lg transition-colors ${modalData.isSafe ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
-                          <LayoutTemplate size={12} className={`flex-shrink-0 sm:w-3.5 sm:h-3.5 ${modalData.isSafe ? "text-emerald-400" : "text-red-400"}`} />
-                          <span className="text-slate-200 text-xs sm:text-sm font-medium">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:18,fontWeight:700,color:modal.rc}} className="mt-3">{modal.level}</p>
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}} className="mt-0.5">{modal.score}/100</p>
                 </div>
-
-                <div className={`p-4 sm:p-5 rounded-xl shadow-inner border ${modalData.isSafe ? 'bg-emerald-950/20 border-emerald-500/20' : 'bg-red-950/20 border-red-500/20'}`}>
-                  <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 tracking-wide uppercase ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Recommended Countermeasures</h3>
-                  <div className="space-y-1.5 pl-1 sm:pl-2">
-                    {preventionMethods[selectedRecord.type]?.map((action, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
-                        <span className={`${modalData.isSafe ? 'text-emerald-500' : 'text-red-500'} mt-0 sm:mt-0.5`}>•</span>
-                        <span>{action}</span>
+                <div className="glass-inset p-4">
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Details</p>
+                  <ul className="space-y-2.5">
+                    {[{icon:Filter,l:"Type",v:sel.type},{icon:Globe,l:"Source",v:modal.source,c:true},{icon:AlertTriangle,l:"Breach",v:modal.breach,c:true},{icon:Calendar,l:"Date",v:modal.date}].map(({icon:Icon,l,v,c})=>(
+                      <li key={l} className="flex items-center gap-2 text-xs">
+                        <Icon size={11} style={{color:"var(--text-4)",flexShrink:0}}/>
+                        <span className="w-14 shrink-0" style={{color:"var(--text-3)"}}>{l}</span>
+                        <span style={{fontFamily:"IBM Plex Mono",fontSize:11,fontWeight:500,color:c?(modal.safe?"#22c55e":"#f43f5e"):"var(--text-2)"}} className="truncate">{v}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="glass-inset p-4 flex flex-col">
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Exposed Fields</p>
+                  <div className="space-y-1.5 overflow-y-auto flex-1" style={{scrollbarWidth:"thin"}}>
+                    {modal.list.map((item,i)=>(
+                      <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{background:modal.safe?"rgba(34,197,94,.06)":"rgba(244,63,94,.06)",border:`1px solid ${modal.safe?"rgba(34,197,94,.14)":"rgba(244,63,94,.14)"}`,color:"var(--text-2)"}}>
+                        <LayoutTemplate size={10} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0}}/>{item}
                       </div>
                     ))}
                   </div>
                 </div>
-
               </div>
-            </motion.div>
+              <div className="rounded-xl p-4" style={{background:modal.safe?"rgba(34,197,94,.04)":"rgba(244,63,94,.04)",border:`1px solid ${modal.safe?"rgba(34,197,94,.12)":"rgba(244,63,94,.12)"}`}}>
+                <div className="flex items-center gap-2 mb-3"><Lock size={12} style={{color:modal.safe?"#22c55e":"#f43f5e"}}/><h3 style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:modal.safe?"#22c55e":"#f43f5e"}}>Countermeasures</h3></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {PREV[sel.type]?.map((a,i)=>(
+                    <div key={i} className="flex items-start gap-2 text-sm" style={{color:"var(--text-2)"}}>
+                      <CheckCircle size={12} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0,marginTop:2}}/>{a}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-    </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

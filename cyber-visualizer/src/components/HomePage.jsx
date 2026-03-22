@@ -1,588 +1,365 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Mail,
-  Smartphone,
-  Shield,
-  CreditCard,
-  Wifi,
-  Link as LinkIcon,
-  X,
-  AlertTriangle,
-  User,
-  Filter,
-  Globe,
-  Calendar,
-  LayoutTemplate,
-  Activity,
-  Server,
-  Crosshair,
-  Lock,
-  Terminal
-} from "lucide-react";
+import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Clock, Radio, Eye } from "lucide-react";
+import { useTheme } from "../ThemeContext";
 
-const HomePage = ({ setIsModalOpen }) => {
-  const [mode, setMode] = useState("API");
-  const [identifier, setIdentifier] = useState("");
-  const [type, setType] = useState("EMAIL");
+/* ── Data ── */
+const STATS=[{label:"Breaches",value:"4.2B+",delta:"+12k today",up:false,icon:Database,color:"#f43f5e"},{label:"Records",value:"18.7B",delta:"+890M/mo",up:true,icon:Eye,color:"#38bdf8"},{label:"Blocked",value:"983K",delta:"+2.1%",up:true,icon:Shield,color:"#22c55e"},{label:"Scanners",value:"247",delta:"6 regions",up:true,icon:Radio,color:"#a78bfa"}];
+const THREATS=[{id:1,name:"MOVEit SQL Injection",target:"348 Orgs",sev:"CRITICAL",region:"Global",time:"Live",icon:"💀"},{id:2,name:"LinkedIn Data Dump",target:"87M Profiles",sev:"HIGH",region:"USA/EU",time:"4m",icon:"🔴"},{id:3,name:"AWS S3 Bucket Leak",target:"2.4 TB",sev:"HIGH",region:"US-East-1",time:"11m",icon:"🟠"},{id:4,name:"Aadhaar Portal Leak",target:"6.9M IDs",sev:"CRITICAL",region:"India",time:"22m",icon:"💀"},{id:5,name:"UPI Fraud Smishing",target:"120K Devices",sev:"MEDIUM",region:"IN/PK",time:"35m",icon:"🟡"},{id:6,name:"BreachForums Dump",target:"1.1B Passwords",sev:"CRITICAL",region:"Dark Web",time:"1h",icon:"💀"}];
+const SCANS=[{q:"rohit@hdfc.co.in",t:"EMAIL",s:"Exposed",a:"3m"},{q:"192.168.42.11",t:"IP",s:"Safe",a:"7m"},{q:"9876543210",t:"PHONE",s:"Exposed",a:"12m"},{q:"ABCDE1234F",t:"PAN",s:"Safe",a:"18m"},{q:"malware-cdn.xyz",t:"URL",s:"Exposed",a:"24m"}];
+const DBS=[{name:"HaveIBeenPwned",r:"13.8B",ok:true,ms:"12ms",c:"#38bdf8"},{name:"LeakCheck Pro",r:"9.2B",ok:true,ms:"18ms",c:"#a78bfa"},{name:"BreachDirectory",r:"7.6B",ok:true,ms:"24ms",c:"#22c55e"},{name:"VirusTotal",r:"900M",ok:true,ms:"31ms",c:"#eab308"},{name:"AbuseIPDB",r:"4.1B",ok:false,ms:"88ms",c:"#f97316"},{name:"Numverify",r:"2.8B",ok:true,ms:"14ms",c:"#f472b6"}];
+const TYPES=[{id:"EMAIL",label:"Email",icon:Mail,color:"#0ea5e9",ph:"Enter email",hint:"e.g. user@gmail.com"},{id:"PHONE",label:"Phone",icon:Smartphone,color:"#10b981",ph:"10-digit mobile",hint:"e.g. 9876543210"},{id:"AADHAAR",label:"Aadhaar",icon:Shield,color:"#f97316",ph:"12-digit Aadhaar",hint:"e.g. 123412341234"},{id:"PAN",label:"PAN",icon:CreditCard,color:"#eab308",ph:"PAN card no.",hint:"e.g. ABCDE1234F"},{id:"IP",label:"IP",icon:Wifi,color:"#8b5cf6",ph:"IPv4 address",hint:"e.g. 103.21.40.0"},{id:"URL",label:"URL",icon:LinkIcon,color:"#ec4899",ph:"Domain / URL",hint:"e.g. https://xyz.com"}];
+const PREV={EMAIL:["Monitor transactions linked to this email.","Enable 2FA immediately.","Check OAuth apps for unauthorised access.","Never share OTPs via email."],PHONE:["Never share OTPs over phone calls.","Beware Smishing links.","Register on TRAI DND registry.","Contact carrier to prevent SIM-swap."],AADHAAR:["Lock biometrics via mAadhaar app.","Use VID instead of real Aadhaar.","Review Aadhaar auth history.","Never share unmasked photocopies."],PAN:["Monitor CIBIL for unknown loans.","Check ITR for unauthorised returns.","Avoid sharing PAN on untrusted sites.","Report to NSDL immediately."],IP:["Restart router for fresh IP.","Use a no-log VPN.","Update router firmware.","Run a full malware scan."],URL:["Don't enter credentials here.","Report to Google Safe Browsing.","Enable browser phishing protection.","Clear cache, cookies and storage."]};
+const SEV={CRITICAL:"bg-rose-500/10 text-rose-400 border border-rose-500/30",HIGH:"bg-orange-500/10 text-orange-400 border border-orange-500/30",MEDIUM:"bg-amber-500/10 text-amber-400 border border-amber-500/30"};
+const PHASES=["Initialising engines…","Querying databases…","Cross-referencing intel…","Generating report…"];
+
+export default function HomePage() {
+  const { dark } = useTheme();
+  const [type,    setType]    = useState("EMAIL");
+  const [id,      setId]      = useState("");
+  const [mode,    setMode]    = useState("API");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [hackerText, setHackerText] = useState("START SCAN");
-  
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const [prog,    setProg]    = useState(0);
+  const [phase,   setPhase]   = useState("");
+  const [result,  setResult]  = useState(null);
+  const [focused, setFocused] = useState(false);
+  const [tick,    setTick]    = useState(0);
+  const inputRef = useRef(null);
+  const API = import.meta?.env?.VITE_API_URL||"http://localhost:5000";
 
-  // Tell the App component to hide/show the header when result changes
-  useEffect(() => {
-    if (setIsModalOpen) {
-      setIsModalOpen(!!result);
-    }
-  }, [result, setIsModalOpen]);
+  useEffect(()=>{ const t=setInterval(()=>setTick(i=>(i+1)%THREATS.length),3500); return ()=>clearInterval(t); },[]);
+  useEffect(()=>{ if(type==="AADHAAR"||type==="PAN") setMode("LOCAL"); },[type]);
+  useEffect(()=>{
+    window.dispatchEvent(new CustomEvent("modalStateChange",{detail:{isModalOpen:!!result}}));
+    return ()=>window.dispatchEvent(new CustomEvent("modalStateChange",{detail:{isModalOpen:false}}));
+  },[result]);
+  useEffect(()=>{ const fn=e=>{if(e.key==="Escape")setResult(null);}; window.addEventListener("keydown",fn); return()=>window.removeEventListener("keydown",fn); },[]);
 
-  // Hacking Animation Effect for Scan Button
-  useEffect(() => {
-    let interval;
-    if (loading) {
-      const hexChars = "0123456789ABCDEF";
-      interval = setInterval(() => {
-        let str = "";
-        for (let i = 0; i < 8; i++) {
-          str += hexChars[Math.floor(Math.random() * 16)];
-        }
-        setHackerText(`INJECTING 0x${str}`);
-      }, 50); // Rapid cycle every 50ms
-    } else {
-      setHackerText("START SCAN");
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
-
-  const scanTypes = [
-    { id: "EMAIL", label: "Email", icon: <Mail size={16} className="sm:w-5 sm:h-5" /> },
-    { id: "PHONE", label: "Phone", icon: <Smartphone size={16} className="sm:w-5 sm:h-5" /> },
-    { id: "AADHAAR", label: "Aadhaar", icon: <Shield size={16} className="sm:w-5 sm:h-5" /> },
-    { id: "PAN", label: "PAN", icon: <CreditCard size={16} className="sm:w-5 sm:h-5" /> },
-    { id: "IP", label: "IP", icon: <Wifi size={16} className="sm:w-5 sm:h-5" /> },
-    { id: "URL", label: "URL", icon: <LinkIcon size={16} className="sm:w-5 sm:h-5" /> }
-  ];
-
-  const preventionMethods = {
-    EMAIL: ["Monitor financial transactions linked with Email.", "Enable Two-Factor Authentication (2FA) immediately.", "Check your connected accounts for unauthorized access.", "Avoid sharing sensitive data via email replies."],
-    PHONE: ["Never share OTPs or banking PINs over phone calls.", "Be wary of SMS phishing (Smishing) containing links.", "Register number on Do Not Call (DND) registry.", "Contact your carrier to prevent SIM swapping."],
-    AADHAAR: ["Lock your Aadhaar biometrics using mAadhaar app.", "Use Virtual ID (VID) instead of real Aadhaar number.", "Check your Aadhaar authentication history for anomalies.", "Never share unmasked photocopies of your Aadhaar."],
-    PAN: ["Monitor financial transactions linked with PAN.", "Check your credit report for unknown loans.", "Avoid sharing PAN on untrusted websites.", "Report misuse to financial authorities."],
-    IP: ["Restart your router to obtain a new dynamic IP.", "Use a reputable VPN to mask your traffic.", "Ensure router's firmware is updated.", "Run a full malware scan on connected devices."],
-    URL: ["Do not enter any personal credentials on this domain.", "Report the malicious URL to Google Safe Browsing.", "Ensure browser web-protection is enabled.", "Clear browser cache, cookies, and history."]
+  const handleInput = e => {
+    let v=e.target.value;
+    if(type==="PHONE")   v=v.replace(/\D/g,"").slice(0,10);
+    if(type==="AADHAAR") v=v.replace(/\D/g,"").slice(0,12);
+    if(type==="PAN")     v=v.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,10);
+    setId(v);
+    if(/^[A-Z]{5}\d{4}[A-Z]$/.test(v))           setType("PAN");
+    else if(/^\d{12}$/.test(v))                   setType("AADHAAR");
+    else if(/^\d{10}$/.test(v)&&type!=="AADHAAR") setType("PHONE");
+    else if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) setType("EMAIL");
+    else if(/^(https?:\/\/|www\.)/i.test(v))       setType("URL");
+    else if(/^(\d{1,3}\.){3}\d{1,3}$/.test(v))    setType("IP");
   };
 
-  const tickerData = [
-    { name: "Global DNS Spoofing", target: "120 Govt IPs", severity: "CRITICAL", color: "bg-red-500", time: "Live" },
-    { name: "LinkedIn Data Dump", target: "50M Records", severity: "HIGH", color: "bg-orange-500", time: "2m ago" },
-    { name: "AWS S3 Bucket Leak", target: "2.4GB Data", severity: "MEDIUM", color: "bg-yellow-500", time: "15m ago" }
-  ];
-
-  useEffect(() => {
-    if (type === "AADHAAR" || type === "PAN") {
-      setMode("LOCAL");
-    }
-  }, [type]);
-
-  const handleInputChange = (e) => {
-    let val = e.target.value;
-
-    if (type === "PHONE") val = val.replace(/\D/g, '').slice(0, 10);
-    else if (type === "AADHAAR") val = val.replace(/\D/g, '').slice(0, 12);
-    else if (type === "PAN") val = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
-    
-    setIdentifier(val);
-
-    if (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val)) setType("PAN");
-    else if (/^\d{12}$/.test(val)) setType("AADHAAR");
-    else if (/^\d{10}$/.test(val) && type !== "AADHAAR") setType("PHONE");
-    else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) setType("EMAIL");
-    else if (/^(https?:\/\/|www\.)/i.test(val)) setType("URL");
-    else if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(val)) setType("IP");
-  };
-
-  const handleSearch = async () => {
-    if (!identifier) return;
-    if (type === "PAN" && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(identifier)) return alert("Invalid PAN format. Example: ABCDE1234F");
-    if (type === "AADHAAR" && !/^[0-9]{12}$/.test(identifier)) return alert("Aadhaar must be exactly 12 digits.");
-    if (type === "PHONE" && !/^[0-9]{10}$/.test(identifier)) return alert("Phone number must be exactly 10 digits.");
-
-    setLoading(true);
-    setResult(null);
-
-    const currentQuery = identifier;
-    let finalStatus = "Safe";
-    let finalResultData = null; 
-
-    // Simulate network delay for the cyber animation to play out
-    await new Promise(resolve => setTimeout(resolve, 800));
-
+  const scan = async () => {
+    if(!id){inputRef.current?.focus();return;}
+    if(type==="PAN"&&!/^[A-Z]{5}\d{4}[A-Z]$/.test(id))return alert("Invalid PAN. Example: ABCDE1234F");
+    if(type==="AADHAAR"&&!/^\d{12}$/.test(id))         return alert("Aadhaar must be 12 digits.");
+    if(type==="PHONE"&&!/^\d{10}$/.test(id))           return alert("Phone must be 10 digits.");
+    setLoading(true);setProg(0);setResult(null);
+    let ph=0;setPhase(PHASES[0]);
+    const pi=setInterval(()=>{setProg(p=>p>=90?p:p+Math.floor(Math.random()*12)+4);ph=Math.min(ph+1,PHASES.length-1);setPhase(PHASES[ph]);},500);
+    const q=id; let fd=null;
     try {
-      let response;
-      let data;
-
-      if (mode === "API") {
-        response = await fetch(`${API_BASE_URL}/api/scan`, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier: currentQuery, type })
-        });
-        data = await response.json();
-        finalStatus = data.status || "Safe";
-        finalResultData = { ...data, scanType: type, queryId: currentQuery };
-        setResult(finalResultData);
-      } else {
-        response = await fetch(`${API_BASE_URL}/api/attacks/search?query=${currentQuery}`);
-        data = await response.json();
-
-        if (!data || data.length === 0 || data[0].status?.toLowerCase() === "safe") {
-          finalStatus = "Safe";
-          finalResultData = { status: "Safe", scanType: type, queryId: currentQuery };
-          setResult(finalResultData);
-        } else {
-          finalStatus = "Exposed";
-          const record = data[0]; 
-          finalResultData = {
-            status: "Exposed", scanType: type, queryId: currentQuery, source: record.source, breachName: record.breachName || record.breachname, breachDate: record.breachDate || record.breachdate, compromisedData: record.compromisedData || record.compromiseddata, severityScore: record.severityScore || record.severityscore, scanDate: record.scanDate || record.scandate || new Date().toISOString().split('T')[0]
-          };
-          setResult(finalResultData);
-        }
-      }
-
-      const currentUser = JSON.parse(localStorage.getItem("user"));
-      if (currentUser && !currentUser.isGuest && currentUser.email) {
-        const historyKey = `search_history_${currentUser.email}`;
-        const pastHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
-        
-        const newRecord = { 
-          id: Date.now(), 
-          query: currentQuery, 
-          type: type, 
-          status: finalStatus, 
-          timestamp: new Date().toISOString(),
-          source: finalResultData?.source,
-          breachName: finalResultData?.breachName,
-          compromisedData: finalResultData?.compromisedData,
-          severityScore: finalResultData?.severityScore
-        };
-        
-        localStorage.setItem(historyKey, JSON.stringify([newRecord, ...pastHistory]));
-      }
-
-      setIdentifier("");
-    } catch (error) {
-      console.error("Scan failed:", error);
-    }
-    
+      if(mode==="API"){const r=await fetch(`${API}/api/scan`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({identifier:q,type})});const d=await r.json();fd={...d,scanType:type,queryId:q};}
+      else {const r=await fetch(`${API}/api/attacks/search?query=${q}`);const d=await r.json();if(!d?.length||d[0].status?.toLowerCase()==="safe")fd={status:"Safe",scanType:type,queryId:q};else{const rec=d[0];fd={status:"Exposed",scanType:type,queryId:q,source:rec.source,breachName:rec.breachName||rec.breachname,compromisedData:rec.compromisedData||rec.compromiseddata,severityScore:rec.severityScore||rec.severityscore,scanDate:rec.scanDate||new Date().toISOString().split("T")[0]};}}
+      const u=JSON.parse(localStorage.getItem("user")||"null");
+      if(u&&!u.isGuest&&u.email){const k=`search_history_${u.email}`;const h=JSON.parse(localStorage.getItem(k)||"[]");localStorage.setItem(k,JSON.stringify([{id:Date.now(),query:q,type,status:fd.status,timestamp:new Date().toISOString(),source:fd.source,breachName:fd.breachName,compromisedData:fd.compromisedData,severityScore:fd.severityScore},...h]));}
+      clearInterval(pi);setProg(100);setPhase("Complete.");
+      await new Promise(r=>setTimeout(r,400));
+      setId("");setResult(fd);
+    } catch(e){console.error(e);clearInterval(pi);}
     setLoading(false);
   };
 
-  const closeModal = () => setResult(null);
+  const modal=result?(()=>{
+    const safe=result.status==="Safe";const score=safe?0:parseInt(result.severityScore||85);
+    const list=result.compromisedData?result.compromisedData.split(",").map(s=>s.trim()):safe?["No data exposed"]:["Archived Threat Data"];
+    let level="SAFE",rc="#22c55e",gc="#22c55e";
+    if(!safe){if(score<40){level="LOW";rc="#eab308";gc="#eab308";}else if(score<75){level="MEDIUM";rc="#f97316";gc="#f97316";}else{level="CRITICAL";rc="#f43f5e";gc="#f43f5e";}}
+    return{safe,score,list,level,rc,gc,source:result.source||(safe?"Clean":"Unknown"),breach:result.breachName||(safe?"None":"Unknown"),scanDate:result.scanDate||new Date().toISOString().split("T")[0]};
+  })():null;
 
-  const glassPanel = "bg-[#0f172a]/70 backdrop-blur-2xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-slate-500/50 relative overflow-hidden";
-
-  const getModalData = () => {
-    if (!result) return null;
-    const isSafe = result.status === "Safe";
-    const source = result.source;
-    const breachName = result.breachName;
-    const scanDate = result.scanDate || new Date().toISOString().split('T')[0];
-    
-    // Failsafe parsing for compromised data
-    let compromisedList = ["None"];
-    if (!isSafe && result.compromisedData) {
-      if (Array.isArray(result.compromisedData)) {
-        compromisedList = result.compromisedData;
-      } else if (typeof result.compromisedData === 'string') {
-        compromisedList = result.compromisedData.split(',').map(s => s.trim());
-      } else {
-        compromisedList = ["Unknown Data"];
-      }
-    }
-
-    // Risk Score: 0 (Safe) to 100 (Critical)
-    const riskScore = isSafe ? 0 : (result.severityScore ? parseInt(result.severityScore) : 89);
-    
-    let riskLevel = "SAFE";
-    let riskColor = "text-emerald-400";
-    let gaugeShadow = "shadow-[0_0_30px_rgba(16,185,129,0.15)]";
-    
-    if (!isSafe) {
-      if (riskScore >= 75) { 
-        riskLevel = "CRITICAL"; 
-        riskColor = "text-red-500"; 
-        gaugeShadow = "shadow-[0_0_30px_rgba(239,68,68,0.15)]";
-      }
-      else if (riskScore >= 50) { 
-        riskLevel = "MODERATE"; 
-        riskColor = "text-orange-400"; 
-        gaugeShadow = "shadow-[0_0_30px_rgba(249,115,22,0.15)]";
-      }
-      else if (riskScore > 0) { 
-        riskLevel = "LOW"; 
-        riskColor = "text-yellow-400"; 
-        gaugeShadow = "shadow-[0_0_30px_rgba(234,179,8,0.15)]";
-      }
-    }
-
-    const mockHash = Array.from({length: 12}, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
-
-    return { isSafe, source, breachName, compromisedList, riskLevel, riskColor, gaugeShadow, scanDate, mockHash, riskScore };
-  };
-
-  const modalData = getModalData();
-
-  const containerVars = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } } };
-  const itemVars = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 350, damping: 25 } } };
-  const clickSpring = { type: "spring", stiffness: 400, damping: 17 };
+  const sel = TYPES.find(t=>t.id===type);
+  const stagger={hidden:{opacity:0},visible:{opacity:1,transition:{staggerChildren:.06,delayChildren:.03}}};
+  const fUp={hidden:{opacity:0,y:12},visible:{opacity:1,y:0,transition:{type:"spring",stiffness:300,damping:24}}};
 
   return (
     <>
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <motion.div 
-          animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/30 blur-[120px] rounded-full mix-blend-screen" 
-        />
-        <motion.div 
-          animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-          className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-cyan-500/20 blur-[120px] rounded-full mix-blend-screen" 
-        />
-      </div>
+    <motion.div variants={stagger} initial="hidden" animate="visible"
+      className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 py-4 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-1)"}}>
 
-      <motion.div key="home-page-container" variants={containerVars} initial="hidden" animate="visible" className="flex-1 w-full flex flex-col px-3 sm:px-4 md:px-8 py-6 overflow-y-auto relative z-10 custom-scrollbar font-sans text-slate-300">
-        
-        <motion.div variants={itemVars} className="text-center mt-2 md:mt-4 mb-8 md:mb-10">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest mb-2 md:mb-3 drop-shadow-xl">
-            CYBER ATTACK <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">VISUALIZER</span>
-          </h2>
-          <p className="text-slate-400 text-xs sm:text-sm md:text-base font-medium tracking-wide px-2">Real-Time Breach Detection & Exposure Monitoring</p>
-        </motion.div>
-
-        {/* Search Panel */}
-        <motion.div variants={itemVars} className={`max-w-4xl w-full mx-auto rounded-3xl mb-8 md:mb-10 ${glassPanel}`}>
-          <div className="flex justify-center mb-6 md:mb-8">
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-full p-1.5 flex w-48 sm:w-56 relative backdrop-blur-md shadow-inner">
-              <motion.div 
-                layout transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className={`absolute top-1.5 bottom-1.5 w-[48%] bg-slate-800 rounded-full border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] ${mode === 'API' ? 'left-1.5' : 'left-[calc(50%-1px)]'}`}
-              />
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={clickSpring} onClick={() => setMode("API")} className={`flex-1 text-xs font-bold py-2 z-10 transition-colors tracking-wider ${mode === "API" ? "text-cyan-400" : "text-slate-400 hover:text-white"}`}>API</motion.button>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={clickSpring} onClick={() => setMode("LOCAL")} className={`flex-1 text-xs font-bold py-2 z-10 transition-colors tracking-wider ${mode === "LOCAL" ? "text-cyan-400" : "text-slate-400 hover:text-white"}`}>LOCAL</motion.button>
-            </div>
+      {/* Ticker */}
+      <motion.div variants={fUp} className="mb-4 rounded-xl overflow-hidden" style={{background:dark?"rgba(12,22,50,.75)":"rgba(255,241,242,.88)",border:dark?"1px solid rgba(244,63,94,.22)":"1px solid rgba(244,63,94,.25)",backdropFilter:"blur(12px)"}}>
+        <div className="flex items-center">
+          <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{background:dark?"rgba(244,63,94,.1)":"rgba(254,226,226,.6)",borderRight:dark?"1px solid rgba(244,63,94,.18)":"1px solid rgba(244,63,94,.2)"}}>
+            <span className="w-2 h-2 rounded-full bg-rose-500 blink inline-block"/>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:"#f43f5e",letterSpacing:".15em",textTransform:"uppercase"}}>LIVE</span>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap justify-center gap-2 sm:gap-4 mb-6 md:mb-8">
-            <AnimatePresence>
-              {scanTypes.map((t) => (
-                <motion.button
-                  key={t.id} whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.05)" }} whileTap={{ scale: 0.95 }} transition={clickSpring} onClick={() => setType(t.id)}
-                  className={`flex items-center justify-center lg:justify-start gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl border transition-colors ${
-                    type === t.id ? "bg-cyan-950/40 border-cyan-500/50 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.15)] backdrop-blur-md" : "bg-slate-800/50 border-slate-700/50 text-slate-400 backdrop-blur-sm hover:border-slate-600"
-                  }`}
-                >
-                  {t.icon} <span className="text-xs sm:text-sm md:text-base font-semibold tracking-wide">{t.label}</span>
-                </motion.button>
-              ))}
-            </AnimatePresence>
+          <AnimatePresence mode="wait">
+            <motion.div key={tick} initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}} transition={{duration:.25}}
+              className="flex items-center gap-2 px-3 py-2.5 flex-1 min-w-0">
+              <span className="text-sm shrink-0">{THREATS[tick].icon}</span>
+              <span className="font-semibold truncate text-sm" style={{color:"var(--text-1)"}}>{THREATS[tick].name}</span>
+              <span className="shrink-0 hidden xs:block text-xs" style={{color:"var(--text-4)"}}>· {THREATS[tick].target}</span>
+            </motion.div>
+          </AnimatePresence>
+          <div className="px-2.5 py-2.5 shrink-0" style={{borderLeft:"1px solid var(--divider)"}}>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}}>{THREATS[tick].time}</span>
           </div>
-
-          {/* Search Input and Hacking Animation Button */}
-          <div className="mt-4 p-2 bg-slate-900/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl flex flex-col sm:flex-row gap-3 shadow-[0_8px_32px_rgba(6,182,212,0.1)] focus-within:shadow-[0_8px_40px_rgba(6,182,212,0.2)] focus-within:border-cyan-500/50 transition-all duration-300">
-            <input
-              value={identifier} onChange={handleInputChange} placeholder={`Enter ${type.toLowerCase()}...`}
-              className="flex-1 bg-transparent px-4 py-3 sm:py-4 text-sm sm:text-base text-white placeholder-slate-500 outline-none w-full text-center sm:text-left font-mono"
-            />
-            
-            <motion.button
-              key="startScan"
-              whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-              whileTap={{ scale: 0.97 }}
-              transition={clickSpring}
-              onClick={handleSearch} 
-              disabled={loading}
-              className={`px-6 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold sm:min-w-[200px] w-full sm:w-auto overflow-hidden relative transition-all duration-300 ${
-                loading 
-                ? "bg-slate-900 text-cyan-400 border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.3)]" 
-                : "bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] border border-cyan-500/20"
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2 relative z-10 font-mono tracking-wider">
-                {loading ? <Terminal size={16} className="animate-pulse" /> : <Crosshair size={18} />}
-                <span>{hackerText}</span>
-              </div>
-              
-              {/* Scanline effect during loading */}
-              {loading && (
-                <motion.div 
-                  initial={{ top: "-100%" }} animate={{ top: "200%" }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  className="absolute left-0 right-0 h-4 bg-cyan-400/20 blur-sm pointer-events-none"
-                />
-              )}
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {/* BOTTOM WIDGETS AREA */}
-        <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mt-auto max-w-5xl w-full mx-auto">
-          
-          <div className="col-span-full mb-[-0.5rem] md:mb-[-1rem] px-1 md:px-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-               <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-cyan-500"></span>
-               </span>
-               <p className="text-[10px] sm:text-xs font-bold text-cyan-400 tracking-widest uppercase truncate">Global Nodes Online</p>
-            </div>
-            <div className="text-[9px] sm:text-[10px] text-slate-500 font-mono tracking-widest flex items-center gap-1.5">
-              <Server size={10} className="text-slate-600 sm:w-3 sm:h-3" /> LATENCY: <span className="text-emerald-400">12ms</span>
-            </div>
-          </div>
-
-          <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={glassPanel}>
-            <div className="flex justify-between items-center mb-4 sm:mb-5 border-b border-slate-700/50 pb-2.5 sm:pb-3 relative z-10">
-              <h3 className="text-xs sm:text-sm font-bold text-white tracking-widest flex items-center gap-2">
-                <Activity size={14} className="text-indigo-400 sm:w-4 sm:h-4" /> LIVE THREAT TICKER
-              </h3>
-              <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700 tracking-wider">REAL-TIME</span>
-            </div>
-            
-            <div className="space-y-2.5 sm:space-y-3 relative z-10">
-              {tickerData.map((item, i) => (
-                <div key={i} className="group flex items-center justify-between bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/50 hover:border-slate-500 transition-colors">
-                  <div className="flex items-center gap-2.5 sm:gap-3.5 overflow-hidden">
-                    <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${item.color} shadow-[0_0_8px_currentColor] animate-pulse`} />
-                    <div className="truncate">
-                      <p className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-white transition-colors truncate">{item.name}</p>
-                      <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider mt-0.5 truncate">Target: <span className="text-slate-400 font-mono">{item.target}</span></p>
-                    </div>
-                  </div>
-                  <div className="text-right flex flex-col items-end flex-shrink-0 ml-2">
-                    <p className="text-[9px] sm:text-[10px] font-mono text-slate-500 mb-1">{item.time}</p>
-                    <span className={`text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                      item.severity === 'CRITICAL' ? 'text-red-400 border-red-500/30 bg-red-500/10' :
-                      item.severity === 'HIGH' ? 'text-orange-400 border-orange-500/30 bg-orange-500/10' :
-                      'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
-                    }`}>
-                      {item.severity}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div whileHover={{ y: -2 }} transition={clickSpring} className={`${glassPanel} flex flex-col justify-between min-h-[200px] sm:min-h-[220px] !p-0`}>
-            
-            <div className="flex justify-between items-center border-b border-slate-700/50 p-4 sm:p-6 relative z-10 bg-[#0f172a]/40 backdrop-blur-sm">
-              <h3 className="text-xs sm:text-sm font-bold text-white tracking-widest flex items-center gap-2">
-                <Globe size={14} className="text-cyan-400 sm:w-4 sm:h-4" /> REGIONAL SURVEILLANCE
-              </h3>
-              <div className="flex gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_currentColor]"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_5px_currentColor]"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_currentColor]"></span>
-              </div>
-            </div>
-            
-            <div className="relative flex-1 flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-b-2xl py-8">
-              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(6,182,212,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.2) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-              <div className="absolute w-[200%] h-[200%] rounded-full animate-[spin_4s_linear_infinite] pointer-events-none" style={{ background: 'conic-gradient(from 0deg, transparent 75%, rgba(6,182,212,0.1) 90%, rgba(6,182,212,0.4) 100%)' }} />
-              <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border border-cyan-500/20 rounded-full pointer-events-none" />
-              <div className="absolute w-32 h-32 sm:w-40 sm:h-40 border border-cyan-500/30 rounded-full border-dashed animate-[spin_15s_linear_infinite_reverse] pointer-events-none" />
-              <div className="absolute w-12 h-12 sm:w-16 sm:h-16 border border-cyan-500/50 rounded-full flex items-center justify-center pointer-events-none">
-                <Crosshair size={20} className="text-cyan-500/40 animate-pulse sm:w-6 sm:h-6" />
-              </div>
-
-              <div className="relative w-full h-full pointer-events-none">
-                 <svg className="absolute inset-0 w-full h-full opacity-60">
-                   <path d="M 30% 45% L 50% 65% L 75% 35%" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4 4" fill="none" className="animate-pulse" />
-                 </svg>
-
-                 <div className="absolute top-[45%] left-[30%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
-                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,1)]" />
-                   <div className="absolute w-6 h-6 sm:w-8 sm:h-8 border border-cyan-400 rounded-full animate-ping opacity-50" />
-                 </div>
-
-                 <div className="absolute top-[65%] left-[50%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
-                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_rgba(99,102,241,1)]" />
-                 </div>
-
-                 <div className="absolute top-[35%] left-[75%] flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-10">
-                   <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-purple-400 rounded-full shadow-[0_0_12px_rgba(168,85,247,1)]" />
-                 </div>
-              </div>
-
-              <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-slate-700/30 pointer-events-none">
-                <Shield size={60} className="sm:w-[90px] sm:h-[90px]" strokeWidth={1} />
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Footer Area */}
-        <motion.footer variants={itemVars} className="mt-10 sm:mt-14 mb-4 border-t border-slate-800/60 pt-6 sm:pt-8 pb-4 text-center max-w-5xl w-full mx-auto px-2">
-          <p className="text-slate-500 text-[10px] sm:text-xs mb-3 sm:mb-4 font-semibold tracking-widest uppercase">
-                               Developer: CoodingN00b7
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 text-[8px] sm:text-[9px] text-slate-600 font-mono tracking-widest uppercase">
-            <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">DPDP Act 2023 Compliant</span>
-            <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">ISO 27001 Protocol</span>
-            <span className="bg-slate-900/50 px-2 py-1 rounded border border-slate-800">SHA-256 Encryption Active</span>
-          </div>
-        </motion.footer>
-
+        </div>
       </motion.div>
 
-      {/* POPUP MODAL */}
-      <AnimatePresence>
-        {result && modalData && (
-          <motion.div 
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(8px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#020617]/90 sm:bg-[#020617]/80 sm:p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} transition={{ type: "spring", stiffness: 350, damping: 25 }}
-              className={`w-full h-full sm:h-auto sm:max-w-4xl bg-[#0f172a] sm:bg-[#0f172a]/95 backdrop-blur-3xl border-0 sm:border rounded-none sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col sm:max-h-[90vh] ${modalData.isSafe ? 'sm:border-emerald-500/30' : 'sm:border-red-500/30'}`}
-            >
-              
-              {/* Sticky Header */}
-              <div className="flex-none flex justify-between items-start px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 sticky top-0 z-20 backdrop-blur-md gap-3">
-                
-                {/* Title and Hash */}
-                <div className="flex flex-col gap-2.5 min-w-0">
-                  <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide">
-                    SCAN INTEL REPORT —
-                    <span className="text-slate-300 font-medium break-all font-mono ml-1">SHA: {modalData.mockHash}</span>
-                  </h2>
-                  
-                  {/* Status Badge */}
-                  <div className="flex items-center">
-                    {!modalData.isSafe ? (
-                      <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="text-[9px] sm:text-[10px] bg-red-950 text-red-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
-                        THREAT DETECTED
-                      </motion.span>
-                    ) : (
-                      <span className="text-[9px] sm:text-[10px] bg-emerald-950 text-emerald-400 px-2 sm:px-3 py-1 rounded-full font-bold tracking-wider border border-emerald-500/30">
-                        SYSTEM SAFE
-                      </span>
-                    )}
-                  </div>
-                </div>
+      {/* Stats — 2 cols on mobile, 4 on desktop */}
+      <motion.div variants={fUp} className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+        {STATS.map(s=>{const Icon=s.icon; return(
+          <motion.div key={s.label} whileTap={{scale:.97}} className="glass flex items-center gap-3 p-3.5 sm:p-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${s.color}14`,border:`1px solid ${s.color}30`}}>
+              <Icon size={16} style={{color:s.color}}/>
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-base sm:text-lg leading-tight stat-val mono">{s.value}</div>
+              <div className="text-[10px] sm:text-xs leading-tight truncate" style={{color:"var(--text-3)"}}>{s.label}</div>
+              <div className="text-[9px] leading-tight mono" style={{color:s.up?"#22c55e":"#f43f5e"}}>{s.delta}</div>
+            </div>
+          </motion.div>
+        );})}
+      </motion.div>
 
-                {/* Close Button */}
-                <motion.button whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }} whileTap={{ scale: 0.9 }} onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full p-1.5 flex-shrink-0 mt-0.5">
-                  <X size={16} />
+      {/* ── SCAN PANEL ── */}
+      <motion.div variants={fUp} className="scan-panel w-full mx-auto p-4 sm:p-6 lg:p-8 mb-5" style={{maxWidth:720}}>
+
+        {/* Header + mode toggle */}
+        <div className="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-3 mb-5">
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold leading-tight mb-1" style={{color:"var(--text-1)"}}>Breach &amp; Exposure Scanner</h1>
+            <p className="text-xs sm:text-sm" style={{color:"var(--text-3)"}}>
+              Scan across <strong style={{color:"var(--accent)"}}>6 live sources</strong>
+            </p>
+          </div>
+          <div className="mode-toggle shrink-0 self-start">
+            {["API","LOCAL"].map(m=><button key={m} onClick={()=>setMode(m)} className={`mode-btn ${mode===m?"active":""}`}>{m}</button>)}
+          </div>
+        </div>
+
+        {/* Type grid — 3 cols on mobile, 6 on sm+ */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-5">
+          {TYPES.map(t=>{const Icon=t.icon;const on=type===t.id; return(
+            <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.93}}
+              className={`type-btn ${on?"":"type-btn-off"}`}
+              style={on?{background:`${t.color}11`,border:`1.5px solid ${t.color}50`,boxShadow:`0 0 18px -6px ${t.color}50`}:{}}>
+              <Icon size={16} style={{color:on?t.color:"var(--text-3)"}}/>
+              <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:600,letterSpacing:".08em",color:on?(dark?"#e8f4fd":"#0c1f3a"):"var(--text-3)"}}>{t.label}</span>
+            </motion.button>
+          );})}
+        </div>
+
+        {/* Active type indicator */}
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <div className="w-1 h-4 rounded-full" style={{background:sel?.color}}/>
+          <span style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-2)"}}>
+            Scanning: <strong style={{color:sel?.color}}>{sel?.label}</strong>
+          </span>
+          <div className="flex-1"/>
+          {id&&<span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}}>{id.length} chars</span>}
+        </div>
+
+        {/* Input */}
+        <div className="scan-input-wrap flex items-center gap-2 mb-2"
+          style={focused?{borderColor:`${sel?.color||"var(--accent)"}60`,boxShadow:`0 0 24px -8px ${sel?.color||"var(--accent)"}30`}:{}}>
+          {sel&&<sel.icon size={15} style={{color:focused?sel.color:"var(--text-4)",flexShrink:0,transition:"color .2s"}}/>}
+          <input ref={inputRef} value={id} onChange={handleInput}
+            onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+            onKeyDown={e=>e.key==="Enter"&&scan()}
+            placeholder={sel?.ph||"Enter identifier…"}
+            className="scan-input"/>
+          <AnimatePresence>
+            {id&&<motion.button initial={{opacity:0,scale:.8}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:.8}}
+              onClick={()=>setId("")} className="w-9 h-9 flex items-center justify-center shrink-0"
+              style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-4)"}}>
+              <X size={14}/>
+            </motion.button>}
+          </AnimatePresence>
+        </div>
+        <p style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-4)"}} className="mb-4 pl-1">{sel?.hint}</p>
+
+        <motion.button onClick={scan} disabled={loading||!id} whileTap={!loading&&id?{scale:.98}:{}} className="btn-primary">
+          {loading
+            ? <><motion.span animate={{rotate:360}} transition={{repeat:Infinity,duration:1.2,ease:"linear"}} style={{display:"inline-flex"}}><Crosshair size={16}/></motion.span><span style={{fontFamily:"IBM Plex Mono",fontSize:12}}>{phase}</span></>
+            : <><Zap size={16}/> Start Threat Scan</>}
+        </motion.button>
+
+        <AnimatePresence>
+          {loading&&<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="overflow-hidden mt-3">
+            <div className="flex justify-between mb-1.5">
+              <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}}>{phase}</span>
+              <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--accent)"}}>{prog}%</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{background:"var(--bg-inset)"}}>
+              <motion.div className="h-full rounded-full" style={{background:"linear-gradient(90deg,#0ea5e9,#6366f1)",width:`${prog}%`}} transition={{duration:.2}}/>
+            </div>
+          </motion.div>}
+        </AnimatePresence>
+
+        {/* DB strip */}
+        <div className="mt-5 pt-4" style={{borderTop:"1px solid var(--divider)"}}>
+          <div className="flex items-center justify-between mb-2.5">
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".12em",textTransform:"uppercase"}}>Connected Sources</span>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"#22c55e"}}>5/6 Online</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            {DBS.map(db=>(
+              <div key={db.name} className="glass-inset flex items-center gap-2 px-2.5 py-2">
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{background:db.c,boxShadow:`0 0 4px ${db.c}`}}/>
+                <span className="text-xs font-medium truncate" style={{color:"var(--text-2)"}}>{db.name}</span>
+                <span className="ml-auto shrink-0" style={{fontFamily:"IBM Plex Mono",fontSize:9,color:db.ok?"#22c55e":"#f97316"}}>{db.ms}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Two-col feed section — stacked on mobile */}
+      <motion.div variants={fUp} className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+        {/* Threat feed */}
+        <div className="glass overflow-hidden p-0">
+          <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div className="flex items-center gap-2"><Activity size={14} className="text-rose-500"/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Global Threat Feed</span></div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-rose-500 blink"/><span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>Live</span></div>
+          </div>
+          {THREATS.map(t=>(
+            <div key={t.id} className="flex items-center gap-2.5 px-4 py-2.5 row-hover transition-colors" style={{borderBottom:"1px solid var(--divider)"}}>
+              <span className="text-sm shrink-0">{t.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate" style={{color:"var(--text-1)"}}>{t.name}</p>
+                <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-3)"}}>{t.region} · {t.target}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md mono ${SEV[t.sev]}`}>{t.sev}</span>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>{t.time}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent scans */}
+        <div className="glass overflow-hidden p-0">
+          <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div className="flex items-center gap-2"><Clock size={14} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Recent Scans</span></div>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>Anonymised</span>
+          </div>
+          {SCANS.map((r,i)=>(
+            <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 row-hover transition-colors" style={{borderBottom:i<SCANS.length-1?"1px solid var(--divider)":"none"}}>
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${r.s==="Exposed"?"bg-rose-500":"bg-emerald-500"}`}/>
+              <span className="flex-1 truncate" style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-2)"}}>{r.q}</span>
+              <span className="shrink-0 px-1.5 py-0.5 rounded border" style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",borderColor:"var(--border)"}}>{r.t}</span>
+              <span className={`shrink-0 font-semibold mono text-[11px] ${r.s==="Exposed"?"text-rose-500":"text-emerald-500"}`}>{r.s}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Footer */}
+      <motion.div variants={fUp} className="pt-4" style={{borderTop:"1px solid var(--divider)"}}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)",letterSpacing:".08em"}}>Team: Fardeen Akmal · Jigisha Naidu · Sushil Nirmal · Suvajit Ghosh</p>
+          <div className="flex flex-wrap gap-1.5">
+            {["DPDP Act 2023","ISO 27001","SOC 2 Type II"].map(b=><span key={b} style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)",border:"1px solid var(--border)",borderRadius:6,padding:"2px 7px"}}>{b}</span>)}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+
+    {/* ── RESULT MODAL ── */}
+    <AnimatePresence>
+      {result&&modal&&(
+        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.2}}
+          className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 modal-overlay"
+          onClick={()=>setResult(null)}>
+          <motion.div initial={{y:50,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} transition={{type:"spring",stiffness:340,damping:28}}
+            onClick={e=>e.stopPropagation()}
+            className="modal-card w-full sm:max-w-4xl flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden"
+            style={{maxHeight:"92vh",border:`1px solid ${modal.safe?"rgba(34,197,94,.22)":"rgba(244,63,94,.28)"}`,boxShadow:"var(--shadow-modal)",fontFamily:"'DM Sans',sans-serif"}}>
+
+            {/* Header */}
+            <div className="flex-none flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4" style={{borderBottom:"1px solid var(--divider)",background:dark?"rgba(6,13,31,.8)":"rgba(240,248,255,.95)"}}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 blink ${modal.safe?"bg-emerald-500":"bg-rose-500"}`}/>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:13,fontWeight:600,color:"var(--text-1)"}} className="truncate">{result.queryId}</span>
+              </div>
+              <div className="flex items-center gap-2.5 shrink-0 ml-3">
+                <span className={`hidden xs:inline text-[10px] font-bold px-3 py-1 rounded-full border mono ${modal.safe?"text-emerald-500 border-emerald-500/30 bg-emerald-500/10":"text-rose-500 border-rose-500/30 bg-rose-500/10"}`}>
+                  {modal.safe?"✓ CLEAN":"⚠ BREACH"}
+                </span>
+                <motion.button onClick={()=>setResult(null)} whileTap={{scale:.9}}
+                  className="w-9 h-9 rounded-full flex items-center justify-center"
+                  style={{background:"var(--bg-inset)",border:"1px solid var(--border)",color:"var(--text-3)"}}>
+                  <X size={14}/>
                 </motion.button>
               </div>
+            </div>
 
-              <motion.div variants={containerVars} initial="hidden" animate="visible" className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar pb-10 sm:pb-6 relative z-10">
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                  
-                  {/* PERFECTLY CENTERED GAUGE */}
-                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`bg-slate-900/80 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-between relative shadow-inner group overflow-hidden ${modalData.gaugeShadow} transition-shadow duration-500`}>
-                    
-                    <h3 className="w-full text-left text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-2 relative z-10">RISK PROFILE</h3>
-                    
-                    {/* Gauge Container - SVG is aligned to bottom center */}
-                    <div className="relative w-40 sm:w-48 aspect-[2/1] mt-4 flex items-end justify-center z-10">
-                      <svg viewBox="0 0 100 55" className="w-full h-full overflow-visible">
-                        <defs>
-                          {/* Smooth Gradient for the track */}
-                          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#10b981" />   {/* Green */}
-                            <stop offset="33%" stopColor="#eab308" />  {/* Yellow */}
-                            <stop offset="66%" stopColor="#f97316" />  {/* Orange */}
-                            <stop offset="100%" stopColor="#ef4444" /> {/* Red */}
-                          </linearGradient>
-                        </defs>
+            {/* Body — scroll */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{scrollbarWidth:"thin"}}>
+              {/* 3-col on md, stacked on mobile */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
 
-                        {/* Background Track (Grey) */}
-                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="12" strokeLinecap="round" />
-                        
-                        {/* Colored Gradient Track overlay */}
-                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="url(#gaugeGradient)" strokeWidth="12" strokeLinecap="round" />
-
-                        {/* Needle Group - translated to exact center of the arc (50, 50) */}
-                        <g transform="translate(50, 50)">
-                          {/* Motion group wrapped securely with an invisible bounding box.
-                            This guarantees Framer Motion rotates EXACTLY around 0,0 locally.
-                          */}
-                          <motion.g
-                            initial={{ rotate: -90 }}
-                            animate={{ rotate: (modalData.riskScore / 100) * 180 - 90 }}
-                            transition={{ type: "spring", stiffness: 50, damping: 15, delay: 0.2 }}
-                            style={{ originX: "50%", originY: "50%" }}
-                          >
-                             {/* Invisible symmetrical bounding box forcing origin to 0,0 */}
-                             <circle cx="0" cy="0" r="45" fill="transparent" />
-                             
-                             {/* The pointed needle itself (pointing straight UP = 0 deg) */}
-                             <polygon points="-3,0 3,0 0,-42" fill="#f8fafc" />
-                             
-                             {/* The base pivot circle */}
-                             <circle cx="0" cy="0" r="5" fill="#0f172a" stroke="#cbd5e1" strokeWidth="1.5" />
-                             <circle cx="0" cy="0" r="1.5" fill="#cbd5e1" />
-                          </motion.g>
-                        </g>
-                      </svg>
-                    </div>
-
-                    <div className="text-center mt-6 relative z-10 w-full">
-                      <p className={`text-xl sm:text-2xl font-black tracking-widest uppercase drop-shadow-md ${modalData.riskColor}`}>{modalData.riskLevel}</p>
-                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-1">SCORE: {modalData.riskScore}/100</p>
-                    </div>
-                  </motion.div>
-
-                  {/* Identifier Telemetry */}
-                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 shadow-inner flex flex-col justify-center group relative overflow-hidden">
-                    <h3 className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider mb-4 group-hover:text-cyan-400 transition-colors uppercase">Target Telemetry</h3>
-                    <ul className="space-y-3 sm:space-y-4 font-mono relative z-10">
-                      <li className="flex items-center text-[10px] sm:text-xs"><User size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">TARGET:</span><span className="text-white font-medium truncate">{result.queryId}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Filter size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">VECTOR:</span><span className="text-white font-bold">{result.scanType}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Globe size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">ORIGIN:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.source || "Clean"}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><AlertTriangle size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">BREACH:</span><span className={`${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'} font-medium truncate`}>{modalData.breachName || "None"}</span></li>
-                      <li className="flex items-center text-[10px] sm:text-xs"><Calendar size={12} className="text-slate-500 w-5 sm:w-6 mr-1" /><span className="text-slate-400 w-16 sm:w-20">TSTAMP:</span><span className="text-white font-bold">{modalData.scanDate}</span></li>
-                    </ul>
-                  </motion.div>
-
-                  {/* Compromised Assets Container */}
-                  <motion.div variants={itemVars} whileHover={{ y: -2 }} className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 sm:p-5 flex flex-col shadow-inner group relative overflow-hidden">
-                    <div className="flex justify-between items-center mb-4 relative z-10">
-                      <h3 className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider group-hover:text-cyan-400 transition-colors uppercase">Compromised Assets</h3>
-                      <Lock size={12} className={modalData.isSafe ? "text-emerald-500" : "text-red-500"} />
-                    </div>
-                    <motion.div variants={containerVars} className="space-y-2 overflowing-assets pr-1 custom-scrollbar max-h-32 md:max-h-none flex-1 relative z-10">
-                      {modalData.compromisedList.map((item, idx) => (
-                        <motion.div variants={itemVars} key={idx} className={`flex items-center gap-2 sm:gap-3 p-1.5 rounded transition-colors group-hover:translate-x-1 ${modalData.isSafe ? 'bg-emerald-950/20' : 'bg-red-950/20'}`}>
-                          <LayoutTemplate size={12} className={`flex-shrink-0 sm:w-3.5 sm:h-3.5 ${modalData.isSafe ? "text-emerald-400" : "text-red-400"}`} />
-                          <span className="text-slate-200 text-xs sm:text-sm font-medium">{item}</span>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  </motion.div>
+                {/* Gauge */}
+                <div className="glass-inset p-4 flex flex-col items-center">
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Risk Score</p>
+                  <div className="relative w-28 h-[60px] sm:w-32 sm:h-[68px]">
+                    <svg viewBox="0 0 100 50" className="absolute inset-0 w-full h-full overflow-visible">
+                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--border)" strokeWidth="6" strokeLinecap="round"/>
+                      <motion.path initial={{strokeDashoffset:125.6}} animate={{strokeDashoffset:125.6-(modal.score/100)*125.6}} transition={{duration:1.3,ease:"easeOut",delay:.2}} d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modal.gc} strokeWidth="6" strokeLinecap="round" strokeDasharray={125.6} style={{filter:`drop-shadow(0 0 7px ${modal.gc})`}}/>
+                    </svg>
+                    <motion.div className="absolute bottom-0 rounded-t-full origin-bottom" style={{left:"calc(50% - 2.5px)",width:"5px",height:"42px",background:modal.gc}} initial={{rotate:-90}} animate={{rotate:-90+(modal.score/100)*180}} transition={{duration:1.3,ease:"easeOut",delay:.2}}/>
+                    <div className="absolute w-2.5 h-2.5 rounded-full z-10" style={{bottom:-4,left:"calc(50% - 5px)",background:"var(--bg-glass-2)",border:`2px solid ${modal.gc}`}}/>
+                  </div>
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:18,fontWeight:700,color:modal.rc}} className="mt-3">{modal.level}</p>
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}} className="mt-0.5">{modal.score} / 100</p>
                 </div>
 
-                {/* Tactical Recommendations */}
-                <motion.div variants={itemVars} whileHover={{ y: -2 }} className={`border rounded-xl p-4 sm:p-5 shadow-inner relative overflow-hidden z-10 ${modalData.isSafe ? 'bg-emerald-950/10 border-emerald-500/20' : 'bg-red-950/10 border-red-500/20'}`}>
-                  <h3 className={`text-xs sm:text-sm font-semibold mb-3 tracking-wide uppercase ${modalData.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>Mitigation Strategy</h3>
-                  <motion.div variants={containerVars} className="space-y-2 pl-1 sm:pl-2 relative z-10">
-                    {preventionMethods[result.scanType]?.map((action, idx) => (
-                      <motion.div variants={itemVars} key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
-                        <span className={`${modalData.isSafe ? 'text-emerald-500' : 'text-red-500'} mt-0 sm:mt-0.5`}>▹</span>
-                        <span className="leading-relaxed">{action}</span>
-                      </motion.div>
+                {/* Details */}
+                <div className="glass-inset p-4">
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Details</p>
+                  <ul className="space-y-2.5">
+                    {[{icon:Filter,l:"Type",v:result.scanType},{icon:Globe,l:"Source",v:modal.source,c:true},{icon:AlertTriangle,l:"Breach",v:modal.breach,c:true},{icon:Calendar,l:"Date",v:modal.scanDate}].map(({icon:Icon,l,v,c})=>(
+                      <li key={l} className="flex items-center gap-2 text-xs">
+                        <Icon size={11} style={{color:"var(--text-4)",flexShrink:0}}/>
+                        <span className="w-14 shrink-0" style={{color:"var(--text-3)"}}>{l}</span>
+                        <span style={{fontFamily:"IBM Plex Mono",fontWeight:500,fontSize:11,color:c?(modal.safe?"#22c55e":"#f43f5e"):"var(--text-2)"}} className="truncate">{v}</span>
+                      </li>
                     ))}
-                  </motion.div>
-                </motion.div>
+                  </ul>
+                </div>
 
-              </motion.div>
-            </motion.div>
+                {/* Exposed */}
+                <div className="glass-inset p-4 flex flex-col">
+                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Exposed Fields</p>
+                  <div className="space-y-1.5 overflow-y-auto flex-1" style={{scrollbarWidth:"thin"}}>
+                    {modal.list.map((item,i)=>(
+                      <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium" style={{background:modal.safe?"rgba(34,197,94,.06)":"rgba(244,63,94,.06)",border:`1px solid ${modal.safe?"rgba(34,197,94,.14)":"rgba(244,63,94,.14)"}`,color:"var(--text-2)"}}>
+                        <LayoutTemplate size={10} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0}}/>{item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Countermeasures */}
+              <div className="rounded-xl p-4 sm:p-5" style={{background:modal.safe?"rgba(34,197,94,.04)":"rgba(244,63,94,.04)",border:`1px solid ${modal.safe?"rgba(34,197,94,.12)":"rgba(244,63,94,.12)"}`}}>
+                <div className="flex items-center gap-2 mb-3"><Lock size={13} style={{color:modal.safe?"#22c55e":"#f43f5e"}}/><h3 style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:modal.safe?"#22c55e":"#f43f5e"}}>Countermeasures</h3></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {PREV[result.scanType]?.map((a,i)=>(
+                    <div key={i} className="flex items-start gap-2 text-sm" style={{color:"var(--text-2)"}}>
+                      <CheckCircle size={12} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0,marginTop:2}}/>{a}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
     </>
   );
-};
-
-export default HomePage;
+}
