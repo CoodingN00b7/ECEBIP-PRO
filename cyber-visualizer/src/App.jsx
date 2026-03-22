@@ -1,140 +1,224 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, Link, useLocation, Navigate, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, LayoutDashboard, Home, User, LogOut, ChevronDown, BadgeCheck, Sun, Moon, Building2, X, Menu } from "lucide-react";
+import { Shield, LayoutDashboard, Home, User, LogOut, ChevronDown, BadgeCheck, Sun, Moon, Building2, Lock } from "lucide-react";
 
-import LoginPage     from "./components/LoginPage.jsx";
-import RegisterPage  from "./components/RegisterPage.jsx";
-import HomePage      from "./components/HomePage.jsx";
-import DashboardPage from "./components/DashboardPage.jsx";
-import GovDashboard  from "./components/GovDashboard.jsx";
-import { useTheme }  from "./ThemeContext.jsx";
-import { getSession, clearSession } from "./userStorage.js";
+import LoginPage       from "./components/LoginPage";
+import RegisterPage    from "./components/RegisterPage";
+import HomePage        from "./components/HomePage";
+import DashboardPage   from "./components/DashboardPage";
+import GovDashboard    from "./components/GovDashboard";
+import { useTheme }    from "./ThemeContext";
+import { getSession, clearSession } from "./userStorage";
 
-/* ── Guards ── */
-const Guard = ({ children, check }) => { const u = getSession(); return check(u) ? children : <Navigate to="/login" replace/>; };
-const AuthGuard  = ({ children }) => <Guard check={u=>!!u} children={children}/>;
-const UserGuard  = ({ children }) => <Guard check={u=>u&&!u.isGuest} children={children}/>;
-const GovGuard   = ({ children }) => <Guard check={u=>u?.role==="government"} children={children}/>;
+
+const ProtectedRoute = ({ children }) => {
+  const u = getSession();
+  if (!u) return <Navigate to="/login" replace />;
+  return children;
+};
+const DashboardRoute = ({ children }) => {
+  const u = getSession();
+  if (!u || u.isGuest) return <Navigate to="/home" replace />;
+  return children;
+};
+const GovRoute = ({ children }) => {
+  const u = getSession();
+  if (!u || u.role !== "government") return <Navigate to="/home" replace />;
+  return children;
+};
 
 export default function App() {
-  const loc      = useLocation();
-  const nav      = useNavigate();
+  const location   = useLocation();
+  const navigate   = useNavigate();
   const { dark, toggle } = useTheme();
-  const [user,    setUser]    = useState(getSession);
-  const [drop,    setDrop]    = useState(false);
-  const [modal,   setModal]   = useState(false);
-  const [menuOpen,setMenuOpen]= useState(false);
-  const dropRef = useRef(null);
+  const [dropdown,     setDropdown]     = useState(false);
+  const [isModalOpen,  setIsModalOpen]  = useState(false);
+  const [user,         setUser]         = useState(getSession());
 
-  useEffect(() => { setUser(getSession()); setDrop(false); setMenuOpen(false); }, [loc.pathname]);
+ 
+  useEffect(() => { setUser(getSession()); setDropdown(false); }, [location.pathname]);
+
   useEffect(() => {
-    const fn = e => setModal(e.detail.isModalOpen);
+    const fn = e => setIsModalOpen(e.detail.isModalOpen);
     window.addEventListener("modalStateChange", fn);
     return () => window.removeEventListener("modalStateChange", fn);
   }, []);
+
+ 
   useEffect(() => {
-    if (!drop) return;
-    const fn = e => { if (dropRef.current && !dropRef.current.contains(e.target)) setDrop(false); };
-    document.addEventListener("mousedown", fn); document.addEventListener("touchstart", fn);
-    return () => { document.removeEventListener("mousedown", fn); document.removeEventListener("touchstart", fn); };
-  }, [drop]);
+    const fn = () => setDropdown(false);
+    if (dropdown) document.addEventListener("click", fn, true);
+    return () => document.removeEventListener("click", fn, true);
+  }, [dropdown]);
 
-  const logout = () => { clearSession(); setUser(null); nav("/login"); };
-  const hideAll = ["/login","/register"].includes(loc.pathname) || modal;
-  const isGov   = user?.role === "government";
-  const isGuest = user?.isGuest;
-  const at = p => loc.pathname === p;
-
-  const nl = (active, gov=false) => {
-    const base = "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200";
-    if (active) return `${base} ${gov?"text-cyan-400 bg-cyan-400/10 border border-cyan-400/20":"text-sky-400 bg-sky-400/10 border border-sky-400/20"}`;
-    return `${base} ${dark?"text-slate-400 hover:text-white hover:bg-white/5 border border-transparent":"text-slate-500 hover:text-slate-900 hover:bg-black/5 border border-transparent"}`;
+  const handleLogout = () => {
+    clearSession();
+    setUser(null);
+    navigate("/login");
   };
 
-  const navItems = [
-    { path:"/home",          label:"Scanner",   icon:Home,          show:true },
-    { path:"/dashboard",     label:"Dashboard", icon:LayoutDashboard,show:!isGuest && !isGov },
-    { path:"/gov-dashboard", label:"Gov Intel",  icon:Building2,     show:isGov },
-  ].filter(i=>i.show);
+  const hideNav = ["/login","/register"].includes(location.pathname) || isModalOpen;
+  const isActive = p => location.pathname === p;
+
+ 
+  const navLink = active =>
+    dark
+      ? active ? "text-sky-400 bg-sky-400/10 border border-sky-400/20 shadow-[0_0_12px_-4px_rgba(56,189,248,.3)]"
+               : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+      : active ? "text-sky-700 bg-sky-100/80 border border-sky-200 shadow-sm"
+               : "text-slate-500 hover:text-slate-900 hover:bg-black/5 border border-transparent";
+
+  const govLink = active =>
+    dark
+      ? active ? "text-cyan-400 bg-cyan-400/10 border border-cyan-400/25"
+               : "text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/5 border border-transparent"
+      : active ? "text-cyan-700 bg-cyan-100/80 border border-cyan-200"
+               : "text-slate-500 hover:text-cyan-700 hover:bg-cyan-50 border border-transparent";
+
+  const isGov = user?.role === "government";
 
   return (
-    <div className="min-h-screen flex flex-col" style={{fontFamily:"'DM Sans',sans-serif",background:"var(--bg-base)",color:"var(--text-1)"}}>
-      <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden>
-        <div style={{position:"absolute",top:"-20%",left:"-10%",width:"55%",height:"55%",background:dark?"radial-gradient(ellipse,rgba(56,189,248,.05) 0%,transparent 68%)":"radial-gradient(ellipse,rgba(14,120,200,.07) 0%,transparent 68%)",filter:"blur(60px)"}}/>
-        <div style={{position:"absolute",bottom:"-20%",right:"-10%",width:"55%",height:"55%",background:dark?"radial-gradient(ellipse,rgba(99,102,241,.05) 0%,transparent 68%)":"radial-gradient(ellipse,rgba(8,145,178,.06) 0%,transparent 68%)",filter:"blur(60px)"}}/>
-        <div style={{position:"absolute",inset:0,opacity:dark?0.015:0.025,backgroundImage:"linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)",backgroundSize:"48px 48px"}}/>
+    <div className="min-h-screen flex flex-col transition-colors duration-300"
+      style={{ fontFamily: "'DM Sans', sans-serif", background: "var(--bg-base)", color: "var(--text-primary)" }}>
+
+     
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"55%", height:"55%",
+          background: dark?"radial-gradient(ellipse,rgba(56,189,248,.055) 0%,transparent 70%)":"radial-gradient(ellipse,rgba(14,120,200,.07) 0%,transparent 70%)", filter:"blur(60px)" }}/>
+        <div style={{ position:"absolute", bottom:"-20%", right:"-10%", width:"55%", height:"55%",
+          background: dark?"radial-gradient(ellipse,rgba(99,102,241,.055) 0%,transparent 70%)":"radial-gradient(ellipse,rgba(8,145,178,.06) 0%,transparent 70%)", filter:"blur(60px)" }}/>
+        <div style={{ position:"absolute", inset:0, opacity: dark ? .015 : .03,
+          backgroundImage:"linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)",
+          backgroundSize:"52px 52px" }}/>
       </div>
 
+      {/* ── Navbar ── */}
       <AnimatePresence>
-        {!hideAll && (
-          <motion.nav initial={{y:-56,opacity:0}} animate={{y:0,opacity:1}} exit={{y:-56,opacity:0}}
-            transition={{type:"spring",stiffness:300,damping:28}}
-            className="nav-glass relative z-30 px-4 sm:px-6 flex justify-between items-center sticky top-0"
-            style={{paddingBottom:12}}>
+        {!hideNav && (
+          <motion.nav
+            initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="nav-glass relative z-20 px-4 sm:px-6 py-3 flex justify-between items-center sticky top-0">
 
-            <motion.div className="flex items-center gap-2.5 cursor-pointer" onClick={()=>nav("/home")} whileTap={{scale:.97}}>
-              <Shield className="text-sky-400 w-6 h-6 sm:w-7 sm:h-7" style={{filter:"drop-shadow(0 0 8px rgba(56,189,248,.55))"}}/>
-              <div className="font-black text-base sm:text-[17px] tracking-widest flex items-center gap-1.5" style={{color:"var(--text-1)"}}>
-                ECEBIP
-                <span style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--accent)",border:"1px solid var(--accent-border)",padding:"1px 5px",borderRadius:5,background:"var(--accent-soft)"}}>PRO</span>
-                {isGov&&<span style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--gov-color)",border:"1px solid rgba(34,211,238,.3)",padding:"1px 5px",borderRadius:5,background:"var(--gov-soft)"}}>GOV</span>}
+            {/* Logo */}
+            <motion.div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/home")}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: .98 }}>
+              <Shield className="text-sky-400 w-7 h-7" style={{ filter:"drop-shadow(0 0 8px rgba(56,189,248,.55))" }}/>
+              <div>
+                <div className="font-black text-[17px] tracking-widest flex items-center gap-1.5" style={{ color:"var(--text-primary)" }}>
+                  ECEBIP
+                  <span style={{ fontSize:9, fontFamily:"IBM Plex Mono", color:"var(--accent)", border:"1px solid var(--accent-border)", padding:"2px 6px", borderRadius:6, background:"var(--accent-soft)" }}>PRO</span>
+                  {isGov && <span style={{ fontSize:9, fontFamily:"IBM Plex Mono", color:"var(--gov-color)", border:"1px solid rgba(34,211,238,.3)", padding:"2px 6px", borderRadius:6, background:"var(--gov-soft)" }}>GOV</span>}
+                </div>
+                <div className="text-[9px] uppercase tracking-widest hidden sm:block" style={{ color:"var(--text-faint)" }}>
+                  G.V. Acharya Inst. of Eng. &amp; Tech.
+                </div>
               </div>
             </motion.div>
 
-            <div className="hidden sm:flex items-center gap-1">
-              <motion.button onClick={toggle} whileHover={{scale:1.08}} whileTap={{scale:.92}}
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{background:"var(--bg-glass)",border:"1px solid var(--border)",color:dark?"#fbbf24":"var(--text-3)"}}>
+            {/* Nav items */}
+            <div className="flex items-center gap-1 sm:gap-2">
+
+              {/* Theme toggle */}
+              <motion.button onClick={toggle} whileHover={{ scale:1.08 }} whileTap={{ scale:.92 }}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                style={{ background:"var(--bg-glass)", border:"1px solid var(--border)", color: dark?"#fbbf24":"#4a7a9b" }}
+                title={dark?"Light mode":"Dark mode"}>
                 <AnimatePresence mode="wait">
-                  <motion.span key={dark?"s":"m"} initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:.18}}>
-                    {dark?<Sun size={14}/>:<Moon size={14}/>}
+                  <motion.span key={dark?"sun":"moon"} initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:.18}}>
+                    {dark ? <Sun size={15}/> : <Moon size={15}/>}
                   </motion.span>
                 </AnimatePresence>
               </motion.button>
 
-              <Link to="/home" className={nl(at("/home"))}><Home size={14}/><span className="hidden md:inline">Scanner</span></Link>
-              {!isGuest&&!isGov&&<Link to="/dashboard" className={nl(at("/dashboard"))}><LayoutDashboard size={14}/><span className="hidden md:inline">Dashboard</span></Link>}
-              {isGov&&<Link to="/gov-dashboard" className={nl(at("/gov-dashboard"),true)}><Building2 size={14}/><span className="hidden md:inline">Gov Intel</span></Link>}
+              <Link to="/home"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${navLink(isActive("/home"))}`}>
+                <Home size={15}/><span className="hidden md:inline">Scanner</span>
+              </Link>
 
+              {user && !user.isGuest && !isGov && (
+                <Link to="/dashboard"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${navLink(isActive("/dashboard"))}`}>
+                  <LayoutDashboard size={15}/><span className="hidden md:inline">Dashboard</span>
+                </Link>
+              )}
+
+              {isGov && (
+                <Link to="/gov-dashboard"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${govLink(isActive("/gov-dashboard"))}`}>
+                  <Building2 size={15}/><span className="hidden md:inline">Gov Dashboard</span>
+                </Link>
+              )}
+
+              {/* User dropdown */}
               {user && (
-                <div ref={dropRef} className="relative ml-1 pl-2 border-l" style={{borderColor:"var(--divider)"}}>
-                  <motion.button onClick={()=>setDrop(v=>!v)} whileHover={{scale:1.04}} whileTap={{scale:.96}}
+                <div className="relative ml-1 pl-2 sm:pl-3 border-l" style={{ borderColor:"var(--divider)" }}>
+                  <motion.button onClick={e=>{e.stopPropagation();setDropdown(v=>!v)}}
+                    whileHover={{scale:1.04}} whileTap={{scale:.96}}
                     className="flex items-center gap-1.5 focus:outline-none">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{background:isGov?"var(--gov-soft)":"var(--accent-soft)",border:`1.5px solid ${isGov?"rgba(34,211,238,.35)":"var(--accent-border)"}`,color:isGov?"var(--gov-color)":"var(--accent)"}}>
-                      {isGov?<Building2 size={13}/>:<User size={13}/>}
+                      style={{ background: isGov?"var(--gov-soft)":"var(--accent-soft)", border:`1.5px solid ${isGov?"rgba(34,211,238,.35)":"var(--accent-border)"}`, color: isGov?"var(--gov-color)":"var(--accent)" }}>
+                      {isGov ? <Building2 size={14}/> : <User size={14}/>}
                     </div>
-                    <motion.span animate={{rotate:drop?180:0}} transition={{duration:.2}}>
-                      <ChevronDown size={12} style={{color:"var(--text-3)"}}/>
+                    <motion.span animate={{ rotate: dropdown ? 180 : 0 }} transition={{ duration:.2 }}>
+                      <ChevronDown size={13} style={{ color:"var(--text-muted)" }}/>
                     </motion.span>
                   </motion.button>
+
                   <AnimatePresence>
-                    {drop&&(
-                      <motion.div initial={{opacity:0,y:-8,scale:.95}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-8,scale:.95}}
-                        transition={{type:"spring",stiffness:350,damping:28}}
-                        className="absolute right-0 mt-3 w-60 glass-2 rounded-2xl shadow-2xl overflow-hidden z-50"
-                        style={{border:"1px solid var(--border-glow)"}}>
-                        <div className="px-4 py-4 border-b" style={{borderColor:"var(--divider)",background:isGov?"var(--gov-soft)":"var(--accent-soft)"}}>
-                          {isGuest?(
-                            <><p style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--text-3)",letterSpacing:".1em",textTransform:"uppercase"}}>Access Level</p><p className="font-bold mt-0.5" style={{color:"var(--text-1)"}}>Guest User</p></>
-                          ):(
-                            <><p style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--text-3)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Signed in as</p>
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="font-bold truncate" style={{color:"var(--text-1)"}}>{user.name}</span>
-                              <BadgeCheck size={12} style={{color:isGov?"var(--gov-color)":"var(--accent)",flexShrink:0}}/>
-                            </div>
-                            <span className="block truncate mb-2 text-xs" style={{color:"var(--text-3)"}}>{user.email}</span>
-                            <span style={{fontSize:9,fontFamily:"IBM Plex Mono",fontWeight:700,padding:"2px 8px",borderRadius:6,letterSpacing:".1em",textTransform:"uppercase",color:isGov?"var(--gov-color)":"var(--accent)",background:isGov?"var(--gov-soft)":"var(--accent-soft)",border:`1px solid ${isGov?"rgba(34,211,238,.3)":"var(--accent-border)"}`}}>
-                              {user.role}
-                            </span></>
+                    {dropdown && (
+                      <motion.div
+                        initial={{ opacity:0, y:-8, scale:.96 }} animate={{ opacity:1, y:0, scale:1 }}
+                        exit={{ opacity:0, y:-8, scale:.96 }} transition={{ type:"spring", stiffness:350, damping:28 }}
+                        className="absolute right-0 mt-3 w-64 glass-2 rounded-2xl shadow-2xl overflow-hidden z-50"
+                        style={{ border:"1px solid var(--border-glow)" }}>
+
+                        {/* Header */}
+                        <div className="px-4 py-4 border-b" style={{ borderColor:"var(--divider)", background: isGov?"var(--gov-soft)":"var(--accent-soft)" }}>
+                          {user.isGuest ? (
+                            <>
+                              <p style={{ fontSize:9, fontFamily:"IBM Plex Mono", color:"var(--text-faint)", letterSpacing:".1em", textTransform:"uppercase" }}>Access Level</p>
+                              <p className="font-bold mt-0.5" style={{ color:"var(--text-primary)" }}>Guest User</p>
+                            </>
+                          ) : (
+                            <>
+                              <p style={{ fontSize:9, fontFamily:"IBM Plex Mono", color:"var(--text-muted)", letterSpacing:".12em", textTransform:"uppercase", marginBottom:4 }}>Signed in as</p>
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <span className="font-bold truncate" style={{ color:"var(--text-primary)" }}>{user.name}</span>
+                                <BadgeCheck size={13} style={{ color: isGov?"var(--gov-color)":"var(--accent)", flexShrink:0 }}/>
+                              </div>
+                              <span className="block truncate mb-2" style={{ fontSize:12, color:"var(--text-muted)" }}>{user.email}</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span style={{ fontSize:9, fontFamily:"IBM Plex Mono", fontWeight:700, padding:"2px 8px", borderRadius:6, letterSpacing:".1em", textTransform:"uppercase",
+                                  color: isGov?"var(--gov-color)":"var(--accent)", background: isGov?"var(--gov-soft)":"var(--accent-soft)", border:`1px solid ${isGov?"rgba(34,211,238,.3)":"var(--accent-border)"}` }}>
+                                  {isGov ? "🔒 " : ""}{user.role}
+                                </span>
+                                {isGov && (
+                                  <span style={{ fontSize:9, fontFamily:"IBM Plex Mono", fontWeight:700, padding:"2px 8px", borderRadius:6, letterSpacing:".1em",
+                                    color:"#f43f5e", background:"rgba(244,63,94,.1)", border:"1px solid rgba(244,63,94,.25)" }}>
+                                    {user.clearance}
+                                  </span>
+                                )}
+                              </div>
+                            </>
                           )}
                         </div>
-                        <div className="p-1.5" style={{background:"var(--bg-glass)"}}>
-                          <button onClick={logout}
-                            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold row-hover transition-all"
-                            style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-2)"}}>
-                            <LogOut size={14}/>{isGuest?"Login / Register":"Sign out"}
+
+                        {/* Actions */}
+                        <div className="p-1.5" style={{ background:"var(--bg-glass)" }}>
+                          {isGov && (
+                            <button onClick={()=>{setDropdown(false);navigate("/gov-dashboard");}}
+                              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all mb-1 row-hover"
+                              style={{ color:"var(--gov-color)" }}>
+                              <Building2 size={14}/> Government Dashboard
+                            </button>
+                          )}
+                          <button onClick={handleLogout}
+                            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all row-hover"
+                            style={{ color:"var(--text-secondary)" }}>
+                            <LogOut size={14}/>
+                            {user.isGuest ? "Login / Register" : "Sign out"}
                           </button>
                         </div>
                       </motion.div>
@@ -143,92 +227,24 @@ export default function App() {
                 </div>
               )}
             </div>
-
-            <div className="flex sm:hidden items-center gap-2">
-              <motion.button onClick={toggle} whileTap={{scale:.9}}
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{background:"var(--bg-glass)",border:"1px solid var(--border)",color:dark?"#fbbf24":"var(--text-3)"}}>
-                {dark?<Sun size={14}/>:<Moon size={14}/>}
-              </motion.button>
-              {user&&(
-                <motion.button onClick={()=>setMenuOpen(v=>!v)} whileTap={{scale:.9}}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{background:isGov?"var(--gov-soft)":"var(--accent-soft)",border:`1px solid ${isGov?"rgba(34,211,238,.3)":"var(--accent-border)"}`,color:isGov?"var(--gov-color)":"var(--accent)"}}>
-                  {menuOpen?<X size={15}/>:<User size={15}/>}
-                </motion.button>
-              )}
-            </div>
           </motion.nav>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {menuOpen&&!hideAll&&(
-          <motion.div initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}} exit={{height:0,opacity:0}}
-            transition={{type:"spring",stiffness:300,damping:28}}
-            className="relative z-20 overflow-hidden sm:hidden glass-2"
-            style={{borderBottom:"1px solid var(--border)"}}>
-            <div className="px-4 py-3">
-              {!isGuest&&<>
-                <p style={{fontSize:10,fontFamily:"IBM Plex Mono",color:"var(--text-3)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Signed in as</p>
-                <p className="font-bold" style={{color:"var(--text-1)"}}>{user?.name}</p>
-                <p className="text-xs mb-3" style={{color:"var(--text-3)"}}>{user?.email}</p>
-              </>}
-              <button onClick={()=>{logout();setMenuOpen(false);}}
-                className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-semibold w-full row-hover"
-                style={{background:"rgba(244,63,94,.08)",border:"1px solid rgba(244,63,94,.2)",color:"#f43f5e",cursor:"pointer"}}>
-                <LogOut size={14}/>{isGuest?"Login / Register":"Sign out"}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className={`flex-grow relative z-10 ${!hideAll?"has-bottom-nav sm:pb-0":""}`}>
+      {/* ── Routes ── */}
+      <div className="flex-grow relative z-10">
         <AnimatePresence mode="wait">
-          <Routes location={loc} key={loc.pathname}>
+          <Routes location={location} key={location.pathname}>
             <Route path="/"             element={<Navigate to="/login" replace/>}/>
             <Route path="/login"        element={<LoginPage    onLogin={u=>{setUser(u);}}/>}/>
-            <Route path="/register"     element={<RegisterPage/>}/>
-            <Route path="/home"         element={<AuthGuard><HomePage/></AuthGuard>}/>
-            <Route path="/dashboard"    element={<UserGuard><DashboardPage setIsModalOpen={setModal}/></UserGuard>}/>
-            <Route path="/gov-dashboard"element={<GovGuard><GovDashboard/></GovGuard>}/>
+            <Route path="/register"     element={<RegisterPage onRegister={()=>{}}/>}/>
+            <Route path="/home"         element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
+            <Route path="/dashboard"    element={<DashboardRoute><DashboardPage setIsModalOpen={setIsModalOpen}/></DashboardRoute>}/>
+            <Route path="/gov-dashboard" element={<GovRoute><GovDashboard/></GovRoute>}/>
             <Route path="*"             element={<Navigate to="/login" replace/>}/>
           </Routes>
         </AnimatePresence>
       </div>
-
-      {!hideAll && user && (
-        <nav className="bottom-nav sm:hidden z-30 flex items-end">
-          <div className="flex w-full px-2 pt-2">
-            {navItems.map(item=>{
-              const Icon = item.icon;
-              const active = at(item.path);
-              const govItem = item.path==="/gov-dashboard";
-              return (
-                <Link key={item.path} to={item.path}
-                  className="bottom-nav-item"
-                  style={{color:active?(govItem?"var(--gov-color)":"var(--accent)"):"var(--text-3)"}}>
-                  <div className="relative">
-                    {active&&(
-                      <motion.div layoutId="bottom-active-pill"
-                        className="absolute inset-[-6px] rounded-xl"
-                        style={{background:govItem?"var(--gov-soft)":"var(--accent-soft)"}}
-                        transition={{type:"spring",stiffness:400,damping:32}}/>
-                    )}
-                    <Icon size={20} className="relative z-10"/>
-                  </div>
-                  <span style={{fontSize:10,fontFamily:"IBM Plex Mono",fontWeight:600,letterSpacing:".06em"}}>{item.label}</span>
-                </Link>
-              );
-            })}
-            <button onClick={toggle} className="bottom-nav-item" style={{color:"var(--text-3)"}}>
-              {dark?<Sun size={20}/>:<Moon size={20}/>}
-              <span style={{fontSize:10,fontFamily:"IBM Plex Mono",fontWeight:600,letterSpacing:".06em"}}>{dark?"Light":"Dark"}</span>
-            </button>
-          </div>
-        </nav>
-      )}
     </div>
   );
 }

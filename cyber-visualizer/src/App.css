@@ -1,7 +1,3 @@
-/* ===============================
-   Existing Styles
-================================ */
-
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -42,10 +38,6 @@
 .read-the-docs {
   color: #888;
 }
-
-/* ===============================
-   🔥 CYBER GLITCH EFFECT
-================================ */
 
 .glitch {
   position: relative;
@@ -97,11 +89,7 @@
   100% { top: 100%; }
 }
 
-/* ===============================
-   CYBER GRID BACKGROUND
-================================ */
 .cyber-grid {
-  /* Updated to Cyan/Indigo grid lines for Elite SecOps theme */
   background-image:
     linear-gradient(rgba(6, 182, 212, 0.15) 1px, transparent 1px),
     linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);

@@ -1,11 +1,12 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-import './index.css';
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from './ThemeContext.jsx';
-import { seedGovAccount } from './userStorage.js';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from './ThemeContext.jsx'
+import { seedGovAccount } from './userStorage.js'
 
+// Seed the demo government account on first load
 seedGovAccount();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,5 +16,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <App />
       </ThemeProvider>
     </BrowserRouter>
-  </React.StrictMode>
-);
+  </React.StrictMode>,
+)
