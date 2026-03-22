@@ -112,7 +112,7 @@ export default function App() {
                   {isGov && <span style={{ fontSize:9, fontFamily:"IBM Plex Mono", color:"var(--gov-color)", border:"1px solid rgba(34,211,238,.3)", padding:"2px 6px", borderRadius:6, background:"var(--gov-soft)" }}>GOV</span>}
                 </div>
                 <div className="text-[9px] uppercase tracking-widest hidden sm:block" style={{ color:"var(--text-faint)" }}>
-                  G.V. Acharya Inst. of Eng. &amp; Tech.
+                  Cyber Threat Intelligence Platform
                 </div>
               </div>
             </motion.div>
