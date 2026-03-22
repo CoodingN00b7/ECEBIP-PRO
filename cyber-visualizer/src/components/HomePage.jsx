@@ -212,7 +212,6 @@ function ResultModal({ result, modal, dark, onClose }) {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="font-black text-sm leading-none" style={{fontFamily:"IBM Plex Mono",color:ac}}>{modal.score}</span>
-                  <span style={{fontFamily:"IBM Plex Mono",fontSize:8,color:"var(--text-faint)"}}>/ 100</span>
                 </div>
               </div>
 
@@ -342,7 +341,7 @@ export default function HomePage() {
     if(type==="PHONE"&&!/^\d{10}$/.test(identifier))            return alert("Phone must be 10 digits.");
     setLoading(true);setProg(0);setResult(null);
     let ph=0; setPhase(PHASES[0]);
-    const pi=setInterval(()=>{setProg(p=>p>=90?p:p+Math.floor(Math.random()*12)+4);ph=Math.min(ph+1,PHASES.length-1);setPhase(PHASES[ph]);},500);
+    const pi=setInterval(()=>{setProg(p=>Math.min(p>=90?p:p+Math.floor(Math.random()*12)+4,99));ph=Math.min(ph+1,PHASES.length-1);setPhase(PHASES[ph]);},500);
     const q=identifier; let fd=null;
     try {
       if(mode==="API"){
