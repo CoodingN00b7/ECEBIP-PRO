@@ -122,32 +122,32 @@ export default function App() {
 
               {/* Theme toggle */}
               <motion.button onClick={toggle} whileHover={{ scale:1.08 }} whileTap={{ scale:.92 }}
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all"
                 style={{ background:"var(--bg-glass)", border:"1px solid var(--border)", color: dark?"#fbbf24":"#4a7a9b" }}
                 title={dark?"Light mode":"Dark mode"}>
                 <AnimatePresence mode="wait">
                   <motion.span key={dark?"sun":"moon"} initial={{rotate:-90,opacity:0}} animate={{rotate:0,opacity:1}} exit={{rotate:90,opacity:0}} transition={{duration:.18}}>
-                    {dark ? <Sun size={15}/> : <Moon size={15}/>}
+                    {dark ? <Sun size={14}/> : <Moon size={14}/>}
                   </motion.span>
                 </AnimatePresence>
               </motion.button>
 
               <Link to="/home"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${navLink(isActive("/home"))}`}>
-                <Home size={15}/><span className="hidden md:inline">Scanner</span>
+                className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${navLink(isActive("/home"))}`}>
+                <Home size={15}/><span className="hidden sm:inline">Scanner</span>
               </Link>
 
               {user && !user.isGuest && !isGov && (
                 <Link to="/dashboard"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${navLink(isActive("/dashboard"))}`}>
-                  <LayoutDashboard size={15}/><span className="hidden md:inline">Dashboard</span>
+                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${navLink(isActive("/dashboard"))}`}>
+                  <LayoutDashboard size={15}/><span className="hidden sm:inline">Dashboard</span>
                 </Link>
               )}
 
               {isGov && (
                 <Link to="/gov-dashboard"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${govLink(isActive("/gov-dashboard"))}`}>
-                  <Building2 size={15}/><span className="hidden md:inline">Gov Dashboard</span>
+                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${govLink(isActive("/gov-dashboard"))}`}>
+                  <Building2 size={15}/><span className="hidden sm:inline">Gov</span>
                 </Link>
               )}
 
