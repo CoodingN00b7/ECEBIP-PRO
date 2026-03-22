@@ -2,18 +2,18 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Lock, User, ArrowRight, UserCircle, Sun, Moon, Building2, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../ThemeContext";
-import { findUser, findGovUser, setSession } from "../userStorage";
+import { useTheme } from "../ThemeContext.jsx";
+import { findUser, findGovUser, setSession } from "../userStorage.js";
 
 export default function LoginPage({ onLogin }) {
   const nav = useNavigate();
   const { dark, toggle } = useTheme();
-  const [tab,     setTab]     = useState("user");
+  const [tab, setTab] = useState("user");
   const [loginId, setLoginId] = useState("");
-  const [govId,   setGovId]   = useState("");
-  const [pwd,     setPwd]     = useState("");
+  const [govId, setGovId] = useState("");
+  const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
-  const [err,     setErr]     = useState("");
+  const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
   const reset = () => setErr("");
@@ -38,13 +38,11 @@ export default function LoginPage({ onLogin }) {
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 py-8"
       style={{background:"var(--bg-base)",fontFamily:"'DM Sans',sans-serif"}}>
 
-      {/* Ambient */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div style={{position:"absolute",top:"-20%",left:"-10%",width:"60%",height:"60%",background:dark?"radial-gradient(ellipse,rgba(56,189,248,.1) 0%,transparent 70%)":"radial-gradient(ellipse,rgba(14,120,200,.12) 0%,transparent 70%)",filter:"blur(80px)"}}/>
         <div style={{position:"absolute",bottom:"-20%",right:"-10%",width:"60%",height:"60%",background:dark?"radial-gradient(ellipse,rgba(99,102,241,.1) 0%,transparent 70%)":"radial-gradient(ellipse,rgba(8,145,178,.1) 0%,transparent 70%)",filter:"blur(80px)"}}/>
       </div>
 
-      {/* Theme btn */}
       <motion.button onClick={toggle} whileTap={{scale:.9}}
         className="fixed top-4 right-4 z-50 w-11 h-11 rounded-xl flex items-center justify-center"
         style={{background:"var(--bg-glass)",border:"1px solid var(--border)",color:dark?"#fbbf24":"var(--text-3)"}}>
@@ -57,7 +55,6 @@ export default function LoginPage({ onLogin }) {
 
         <div className="glass-2 rounded-2xl p-6 sm:p-8" style={{border:"1px solid var(--border-glow)"}}>
 
-          {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-6">
             <div className="relative float-anim">
               <div style={{position:"absolute",inset:-6,background:"var(--accent-soft)",borderRadius:"50%",filter:"blur(12px)"}}/>
@@ -71,7 +68,6 @@ export default function LoginPage({ onLogin }) {
             </div>
           </div>
 
-          {/* Tab switcher */}
           <div className="flex mb-5 gap-1 p-1 rounded-xl" style={{background:"var(--bg-inset)"}}>
             {[{id:"user",icon:User,label:"User Login"},{id:"gov",icon:Building2,label:"Government"}].map(t=>(
               <button key={t.id} onClick={()=>{setTab(t.id);reset();setLoginId("");setPwd("");setGovId("");}}
@@ -82,7 +78,6 @@ export default function LoginPage({ onLogin }) {
             ))}
           </div>
 
-          {/* Gov banner */}
           <AnimatePresence>
             {tab==="gov"&&(
               <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="overflow-hidden mb-4">
