@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Shield, AlertTriangle, Globe, Lock, Database, TrendingUp, Activity, MapPin, FileText, ChevronRight, Server, Clock, Filter, Crosshair, Flag } from "lucide-react";
-import { useTheme } from "../ThemeContext";
-import { getSession } from "../userStorage";
+import { useTheme } from "../ThemeContext.jsx";
+import { getSession } from "../userStorage.js";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell } from "recharts";
 
 /* ── Gov data ── */
@@ -65,7 +65,7 @@ export default function GovDashboard() {
           </div>
         </motion.div>
 
-        {/* Stats grid — 2 cols mobile, 6 desktop */}
+        {/* Stats grid */}
         <motion.div variants={fUp} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
           {N_STATS.map(s=>{const Icon=s.icon; return(
             <motion.div key={s.l} whileTap={{scale:.97}} className="glass p-3 flex flex-col gap-1.5">
@@ -79,7 +79,7 @@ export default function GovDashboard() {
           );})}
         </motion.div>
 
-        {/* Tab nav — horizontal scroll on mobile */}
+        {/* Tab nav */}
         <motion.div variants={fUp} className="flex gap-1 mb-4 overflow-x-auto" style={{scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}>
           <div className="flex gap-1 p-1 rounded-xl shrink-0" style={{background:"var(--bg-inset)"}}>
             {TABS.map(t=>{const Icon=t.icon;const on=tab===t.id;return(
@@ -168,7 +168,6 @@ export default function GovDashboard() {
           {/* Incidents */}
           {tab==="incidents"&&(
             <motion.div key="inc" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:.22}}>
-              {/* Mobile cards */}
               <div className="lg:hidden flex flex-col gap-2">
                 {INCIDENTS.map(inc=>{const s=SEV_C[inc.sev];return(
                   <div key={inc.id} className="glass p-4">
@@ -186,7 +185,6 @@ export default function GovDashboard() {
                   </div>
                 );})}
               </div>
-              {/* Desktop table */}
               <div className="hidden lg:block glass overflow-hidden p-0">
                 <div className="px-5 py-4 border-b" style={{borderColor:"var(--divider)"}}>
                   <div className="flex items-center gap-2">
@@ -234,67 +232,4 @@ export default function GovDashboard() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:a.activity==="CRITICAL"?"rgba(244,63,94,.12)":a.activity==="HIGH"?"rgba(249,115,22,.12)":"rgba(234,179,8,.12)"}}>
-                          <Crosshair size={14} style={{color:a.activity==="CRITICAL"?"#f43f5e":a.activity==="HIGH"?"#f97316":"#eab308"}}/>
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm" style={{color:"var(--text-1)"}}>{a.name}</p>
-                          <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>{a.origin}</p>
-                        </div>
-                      </div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded mono ${SEV_C[a.activity]?.badge||""}`}>{a.activity}</span>
-                    </div>
-                    <div className="space-y-1.5">
-                      {[{l:"Type",v:a.type},{l:"Targets",v:a.targets},{l:"Tracked",v:a.tracked}].map(({l,v})=>(
-                        <div key={l} className="flex justify-between">
-                          <span className="text-xs" style={{color:"var(--text-3)"}}>{l}</span>
-                          <span className="text-xs font-semibold" style={{color:"var(--text-1)"}}>{v}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Reports */}
-          {tab==="reports"&&(
-            <motion.div key="rep" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:.22}}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  {title:"APT41 Campaign Analysis — Q1 2025",cls:"TOP SECRET",  date:"22 Mar",pp:47, agency:"CERT-In"},
-                  {title:"Critical Infrastructure Vulnerability Report",cls:"SECRET", date:"21 Mar",pp:23, agency:"NCIIPC"},
-                  {title:"UPI Fraud Ecosystem — Deep Dive",cls:"CONFIDENTIAL",date:"20 Mar",pp:31, agency:"RBI-CISO"},
-                  {title:"National Cyber Threat Landscape 2025",cls:"SECRET",date:"18 Mar",pp:88, agency:"NSA-IN"},
-                  {title:"AI-Assisted Phishing Surge Advisory",cls:"RESTRICTED",date:"15 Mar",pp:12, agency:"CERT-In"},
-                  {title:"Border Region Network Intrusion",cls:"TOP SECRET",date:"14 Mar",pp:56, agency:"DRDO-CERT"},
-                ].map((r,i)=>{
-                  const cc=r.cls==="TOP SECRET"?"#f43f5e":r.cls==="SECRET"?"#f97316":r.cls==="CONFIDENTIAL"?"#eab308":"#22c55e";
-                  return(
-                    <motion.div key={r.title} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*.04}}
-                      whileTap={{scale:.98}} className="glass-inset p-4 cursor-pointer">
-                      <div className="flex items-start justify-between gap-2 mb-2.5">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{background:`${cc}12`,border:`1px solid ${cc}28`}}>
-                          <FileText size={14} style={{color:cc}}/>
-                        </div>
-                        <span style={{fontFamily:"IBM Plex Mono",fontSize:8,fontWeight:700,padding:"2px 7px",borderRadius:5,color:cc,border:`1px solid ${cc}30`,background:`${cc}0e`,flexShrink:0}}>{r.cls}</span>
-                      </div>
-                      <h3 className="font-bold text-sm mb-2.5 leading-snug" style={{color:"var(--text-1)"}}>{r.title}</h3>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2.5">
-                          <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)"}}>{r.date}</span>
-                          <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>{r.pp}pp</span>
-                        </div>
-                        <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:600,color:"var(--gov-color)"}}>{r.agency}</span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </div>
-  );
-}
+                          <Crosshair size={14} style={{color:a.activity==="CRITICAL"?"#f43f5e":a.activity==="HIGH"?"#f97316":"#eab308
