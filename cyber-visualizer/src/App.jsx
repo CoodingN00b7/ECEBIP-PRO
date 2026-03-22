@@ -3,13 +3,13 @@ import { Routes, Route, Link, useLocation, Navigate, useNavigate } from "react-r
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, LayoutDashboard, Home, User, LogOut, ChevronDown, BadgeCheck, Sun, Moon, Building2, X, Menu } from "lucide-react";
 
-import LoginPage     from "./components/LoginPage";
-import RegisterPage  from "./components/RegisterPage";
-import HomePage      from "./components/HomePage";
-import DashboardPage from "./components/DashboardPage";
-import GovDashboard  from "./components/GovDashboard";
-import { useTheme }  from "./ThemeContext";
-import { getSession, clearSession } from "./userStorage";
+import LoginPage     from "./components/LoginPage.jsx";
+import RegisterPage  from "./components/RegisterPage.jsx";
+import HomePage      from "./components/HomePage.jsx";
+import DashboardPage from "./components/DashboardPage.jsx";
+import GovDashboard  from "./components/GovDashboard.jsx";
+import { useTheme }  from "./ThemeContext.jsx";
+import { getSession, clearSession } from "./userStorage.js";
 
 /* ── Guards ── */
 const Guard = ({ children, check }) => { const u = getSession(); return check(u) ? children : <Navigate to="/login" replace/>; };
