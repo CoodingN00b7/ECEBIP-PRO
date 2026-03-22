@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Radio, Eye } from "lucide-react";
+import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Radio, Eye, ChevronDown } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 
 const GLOBAL_STATS = [
@@ -58,6 +58,7 @@ export default function HomePage() {
   const [phase, setPhase]       = useState("");
   const [result, setResult]     = useState(null);
   const [focused, setFocused]   = useState(false);
+  const [typeOpen, setTypeOpen] = useState(false);
   const [tickIdx, setTickIdx]   = useState(0);
   const inputRef = useRef(null);
   const API = import.meta?.env?.VITE_API_URL || "http://localhost:5000";
@@ -69,8 +70,16 @@ export default function HomePage() {
     return ()=>window.dispatchEvent(new CustomEvent("modalStateChange",{detail:{isModalOpen:false}}));
   },[result]);
   useEffect(() => {
-    const fn=e=>{if(e.key==="Escape")setResult(null);}; window.addEventListener("keydown",fn); return()=>window.removeEventListener("keydown",fn);
+    const fn=e=>{if(e.key==="Escape"){setResult(null);setTypeOpen(false);}};
+    window.addEventListener("keydown",fn); return()=>window.removeEventListener("keydown",fn);
   },[]);
+
+  useEffect(() => {
+    if(!typeOpen) return;
+    const fn=()=>setTypeOpen(false);
+    document.addEventListener("click",fn,true);
+    return()=>document.removeEventListener("click",fn,true);
+  },[typeOpen]);
 
   const handleInput = e => {
     let v=e.target.value;
@@ -191,27 +200,59 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Type buttons — horizontal scroll on mobile */}
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1" style={{scrollbarWidth:"none",msOverflowStyle:"none"}}>
-          {SCAN_TYPES.map(t=>{const Icon=t.icon;const on=type===t.id;return(
-            <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.93}}
-              className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl shrink-0 transition-all"
-              style={on
-                ?{background:`${t.color}14`,border:`1.5px solid ${t.color}55`,boxShadow:`0 0 18px -6px ${t.color}50`}
-                :{background:"var(--bg-inset)",border:"1px solid var(--border)",opacity:.7}}>
-              <Icon size={18} style={{color:on?t.color:"var(--text-muted)"}}/>
-              <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".06em",color:on?t.color:"var(--text-muted)",whiteSpace:"nowrap"}}>{t.label}</span>
+        {/* Scan Type Dropdown */}
+        <div className="mb-4">
+          <label style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)",letterSpacing:".1em",textTransform:"uppercase",display:"block",marginBottom:8}}>Scan Type</label>
+          <div className="relative">
+            <motion.button
+              onClick={()=>setTypeOpen(v=>!v)}
+              whileTap={{scale:.98}}
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all"
+              style={{
+                background:"var(--bg-inset)",
+                border:`1.5px solid ${selType?.color}55`,
+                boxShadow:`0 0 20px -8px ${selType?.color}40`,
+              }}>
+              {selType && <selType.icon size={18} style={{color:selType.color,flexShrink:0}}/>}
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm" style={{color:"var(--text-primary)"}}>{selType?.label}</div>
+                <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{selType?.hint}</div>
+              </div>
+              <motion.span animate={{rotate:typeOpen?180:0}} transition={{duration:.2}}>
+                <ChevronDown size={16} style={{color:"var(--text-muted)",flexShrink:0}}/>
+              </motion.span>
             </motion.button>
-          );})}
-        </div>
 
-        {/* Active type pill */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-1 h-4 rounded-full" style={{background:selType?.color}}/>
-          <span style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-secondary)"}}>
-            Scanning: <strong style={{color:selType?.color}}>{selType?.label}</strong>
-          </span>
-          {identifier&&<span className="ml-auto" style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{identifier.length} chars</span>}
+            <AnimatePresence>
+              {typeOpen && (
+                <motion.div
+                  initial={{opacity:0,y:-8,scale:.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-8,scale:.97}}
+                  transition={{type:"spring",stiffness:380,damping:28}}
+                  className="absolute left-0 right-0 top-full mt-2 rounded-xl overflow-hidden z-50"
+                  style={{background:"var(--bg-glass-2)",border:"1px solid var(--border-glow)",boxShadow:"0 16px 48px -8px rgba(0,0,0,.45)",backdropFilter:"blur(20px)"}}>
+                  {SCAN_TYPES.map((t,i)=>{
+                    const Icon=t.icon; const on=type===t.id;
+                    return(
+                      <motion.button key={t.id}
+                        onClick={()=>{setType(t.id);setTypeOpen(false);setId("");}}
+                        whileHover={{backgroundColor:dark?"rgba(255,255,255,.04)":"rgba(0,0,0,.03)"}}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+                        style={{borderBottom:i<SCAN_TYPES.length-1?"1px solid var(--divider)":"none",background:on?`${t.color}0d`:"transparent"}}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:`${t.color}18`,border:`1px solid ${t.color}35`}}>
+                          <Icon size={15} style={{color:t.color}}/>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold" style={{color:on?t.color:"var(--text-primary)"}}>{t.label}</div>
+                          <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{t.hint}</div>
+                        </div>
+                        {on && <CheckCircle size={14} style={{color:t.color,flexShrink:0}}/>}
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Input */}
