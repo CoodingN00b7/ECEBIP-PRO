@@ -316,7 +316,7 @@ export default function HomePage() {
               <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold self-start mt-0.5"
                 style={{fontFamily:"IBM Plex Mono",color:"var(--accent)",background:"var(--accent-soft)",border:"1px solid var(--accent-border)"}}>{item.tag}</span>
             </motion.div>
-          ))
+          ))}
         </div>
       </motion.div>
 
