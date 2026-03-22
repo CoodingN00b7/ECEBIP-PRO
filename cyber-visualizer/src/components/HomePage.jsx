@@ -72,115 +72,155 @@ const BREACH_TIMELINE = [
 /* ─── Unified Result Modal ─── */
 function ResultModal({ result, modal, dark, onClose }) {
   if (!result || !modal) return null;
+  const ac = modal.safe ? "#22c55e" : "#f43f5e";
+  const acSoft = modal.safe ? "rgba(34,197,94," : "rgba(244,63,94,";
+
   return (
     <AnimatePresence>
       <motion.div
-        initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.22}}
-        className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 modal-overlay"
+        initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.3}}
+        className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-6"
+        style={{backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)",background:"rgba(0,0,0,.55)"}}
         onClick={onClose}>
-        <motion.div
-          initial={{y:60,opacity:0,scale:.95}} animate={{y:0,opacity:1,scale:1}} exit={{y:40,opacity:0}}
-          transition={{type:"spring",stiffness:340,damping:26}}
-          onClick={e=>e.stopPropagation()}
-          className="modal-card w-full sm:max-w-md max-h-[92vh] flex flex-col rounded-t-3xl sm:rounded-2xl overflow-hidden"
-          style={{border:`1.5px solid ${modal.safe?"rgba(34,197,94,.3)":"rgba(244,63,94,.35)"}`,boxShadow:"var(--shadow-modal)"}}>
 
-          {/* Drag handle — mobile only */}
-          <div className="flex justify-center pt-3 pb-0 sm:hidden shrink-0">
-            <div className="w-10 h-1 rounded-full" style={{background:"var(--border)"}}/>
+        <motion.div
+          initial={{y:80,opacity:0,scale:.93}} animate={{y:0,opacity:1,scale:1}} exit={{y:50,opacity:0,scale:.96}}
+          transition={{type:"spring",stiffness:320,damping:28}}
+          onClick={e=>e.stopPropagation()}
+          className="w-full sm:max-w-md max-h-[88vh] flex flex-col overflow-hidden"
+          style={{
+            borderRadius:"28px 28px 0 0",
+            background:dark?"rgba(6,13,31,.97)":"rgba(245,250,255,.98)",
+            border:`1.5px solid ${acSoft}.25)`,
+            boxShadow:`0 -8px 60px -10px ${acSoft}.2), 0 0 0 1px ${acSoft}.08)`,
+          }}>
+
+          {/* Drag pill */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0 sm:hidden">
+            <div className="w-12 h-1.5 rounded-full" style={{background:acSoft+".3)"}}/>
           </div>
 
-          {/* Status banner */}
-          <div className="px-5 pt-4 pb-5 shrink-0"
-            style={{background:modal.safe
-              ?"linear-gradient(135deg,rgba(34,197,94,.14),rgba(34,197,94,.04))"
-              :"linear-gradient(135deg,rgba(244,63,94,.16),rgba(244,63,94,.04))"}}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0"
-                  style={{background:modal.safe?"rgba(34,197,94,.15)":"rgba(244,63,94,.15)",border:`1.5px solid ${modal.safe?"rgba(34,197,94,.3)":"rgba(244,63,94,.3)"}`}}>
-                  {modal.safe?"✅":"🚨"}
+          {/* ── TOP HERO ── */}
+          <div className="relative overflow-hidden px-5 pt-4 pb-6 shrink-0"
+            style={{background:`linear-gradient(160deg,${acSoft}.12) 0%,${acSoft}.03) 60%,transparent 100%)`}}>
+            {/* ambient glow blob */}
+            <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
+              style={{background:`radial-gradient(circle,${acSoft}.15) 0%,transparent 70%)`,transform:"translate(30%,-30%)",filter:"blur(20px)"}}/>
+
+            <div className="flex items-start justify-between gap-3 relative z-10">
+              <div className="flex items-center gap-3.5">
+                {/* Icon */}
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
+                    style={{background:`linear-gradient(135deg,${acSoft}.2),${acSoft}.08))`,border:`1.5px solid ${acSoft}.3)`}}>
+                    {modal.safe ? "🛡️" : "⚠️"}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                    style={{background:ac,border:"2px solid var(--bg-base)"}}>
+                    {modal.safe
+                      ? <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      : <svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 3l4 4M7 3l-4 4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                  </div>
                 </div>
                 <div className="min-w-0">
-                  <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:modal.safe?"#22c55e":"#f43f5e",letterSpacing:".15em",textTransform:"uppercase",fontWeight:700}}>
-                    {modal.safe?"✓ No Breach Found":"⚠ Breach Detected"}
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full blink" style={{background:ac}}/>
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:800,color:ac,letterSpacing:".18em",textTransform:"uppercase"}}>
+                      {modal.safe ? "No Breach Found" : "Breach Detected"}
+                    </span>
                   </div>
-                  <div className="font-bold text-base mt-0.5 truncate" style={{color:"var(--text-primary)"}}>{result.queryId}</div>
-                  <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>{result.scanType} · {modal.scanDate}</div>
+                  <div className="font-black text-base truncate max-w-[200px]" style={{color:"var(--text-primary)",letterSpacing:"-.01em"}}>{result.queryId}</div>
+                  <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)",marginTop:2}}>{result.scanType} · {modal.scanDate}</div>
                 </div>
               </div>
-              <motion.button onClick={onClose} whileTap={{scale:.9}}
-                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1"
-                style={{background:"var(--bg-inset)",border:"1px solid var(--border)",color:"var(--text-muted)"}}>
-                <X size={14}/>
+              <motion.button onClick={onClose} whileTap={{scale:.88}}
+                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                style={{background:acSoft+".1)",border:`1px solid ${acSoft}.2)`,color:ac}}>
+                <X size={13}/>
               </motion.button>
             </div>
           </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto" style={{scrollbarWidth:"thin"}}>
-
-            {/* Risk gauge row */}
-            <div className="flex items-center gap-4 px-5 py-4" style={{borderBottom:"1px solid var(--divider)"}}>
-              <div className="relative w-20 h-[44px] shrink-0">
-                <svg viewBox="0 0 100 50" className="absolute inset-0 w-full h-full overflow-visible">
-                  <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--border)" strokeWidth="7" strokeLinecap="round"/>
-                  <motion.path
-                    initial={{strokeDashoffset:125.6}} animate={{strokeDashoffset:125.6-(modal.score/100)*125.6}}
-                    transition={{duration:1.4,ease:"easeOut",delay:.2}}
-                    d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modal.gc} strokeWidth="7"
-                    strokeLinecap="round" strokeDasharray={125.6}
-                    style={{filter:`drop-shadow(0 0 6px ${modal.gc})`}}/>
+          {/* ── RISK SCORE BAND ── */}
+          <div className="shrink-0 px-5 py-4" style={{borderBottom:`1px solid ${acSoft}.12)`}}>
+            <div className="flex items-center gap-4">
+              {/* Circular gauge */}
+              <div className="relative shrink-0" style={{width:72,height:72}}>
+                <svg viewBox="0 0 72 72" width="72" height="72">
+                  <circle cx="36" cy="36" r="28" fill="none" stroke={acSoft+".12)"} strokeWidth="6"/>
+                  <motion.circle cx="36" cy="36" r="28" fill="none" stroke={ac} strokeWidth="6"
+                    strokeLinecap="round" strokeDasharray={175.9}
+                    initial={{strokeDashoffset:175.9}}
+                    animate={{strokeDashoffset:175.9-((modal.score/100)*175.9)}}
+                    transition={{duration:1.5,ease:"easeOut",delay:.15}}
+                    transform="rotate(-90 36 36)"
+                    style={{filter:`drop-shadow(0 0 8px ${ac})`}}/>
                 </svg>
-                <motion.div className="absolute bottom-0 rounded-t-full origin-bottom"
-                  style={{left:"calc(50% - 2px)",width:"4px",height:"38px",background:modal.gc}}
-                  initial={{rotate:-90}} animate={{rotate:-90+(modal.score/100)*180}} transition={{duration:1.4,ease:"easeOut",delay:.2}}/>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-black text-sm leading-none" style={{fontFamily:"IBM Plex Mono",color:ac}}>{modal.score}</span>
+                  <span style={{fontFamily:"IBM Plex Mono",fontSize:8,color:"var(--text-faint)"}}>/ 100</span>
+                </div>
               </div>
-              <div>
-                <div className="font-black text-2xl" style={{fontFamily:"IBM Plex Mono",color:modal.rc}}>{modal.level}</div>
-                <div style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-muted)"}}>Score: <strong style={{color:modal.rc}}>{modal.score}/100</strong></div>
-              </div>
-              <div className="ml-auto text-right shrink-0">
-                <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>Source</div>
-                <div className="font-semibold text-sm" style={{color:modal.safe?"#22c55e":"#f43f5e"}}>{modal.source}</div>
-                <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>
-                  Breach: <span style={{color:modal.safe?"#22c55e":"#f43f5e"}}>{modal.breach}</span>
+
+              <div className="flex-1 min-w-0">
+                <div className="font-black text-3xl tracking-tight leading-none mb-1" style={{color:ac}}>{modal.level}</div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <Globe size={11} style={{color:"var(--text-faint)"}}/>
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>Source: <strong style={{color:ac}}>{modal.source}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <AlertTriangle size={11} style={{color:"var(--text-faint)"}}/>
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>Breach: <strong style={{color:ac}}>{modal.breach}</strong></span>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Exposed fields */}
-            <div className="px-5 py-4" style={{borderBottom:"1px solid var(--divider)"}}>
-              <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>
-                {modal.safe ? "Status" : "Exposed Fields"}
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto" style={{scrollbarWidth:"none"}}>
+
+            {/* ── EXPOSED FIELDS ── */}
+            <div className="px-5 pt-4 pb-4" style={{borderBottom:`1px solid ${acSoft}.1)`}}>
+              <div style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)",letterSpacing:".15em",textTransform:"uppercase",marginBottom:10,fontWeight:700}}>
+                {modal.safe ? "Scan Status" : "Exposed Fields"}
               </div>
               <div className="flex flex-wrap gap-2">
                 {modal.list.map((item,i)=>(
-                  <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
-                    style={{background:modal.safe?"rgba(34,197,94,.08)":"rgba(244,63,94,.08)",border:`1px solid ${modal.safe?"rgba(34,197,94,.2)":"rgba(244,63,94,.2)"}`,color:modal.safe?"#22c55e":"#f43f5e"}}>
+                  <motion.span key={i} initial={{opacity:0,scale:.85}} animate={{opacity:1,scale:1}} transition={{delay:i*.06}}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
+                    style={{background:`linear-gradient(135deg,${acSoft}.12),${acSoft}.06))`,border:`1px solid ${acSoft}.25)`,color:ac,letterSpacing:".03em"}}>
                     <LayoutTemplate size={10}/>{item}
-                  </span>
+                  </motion.span>
                 ))}
               </div>
             </div>
 
-            {/* Countermeasures */}
-            <div className="px-5 py-4">
+            {/* ── RECOMMENDED ACTIONS ── */}
+            <div className="px-5 pt-4 pb-6">
               <div className="flex items-center gap-2 mb-3">
-                <Lock size={12} style={{color:modal.safe?"#22c55e":"#f43f5e"}}/>
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:modal.safe?"#22c55e":"#f43f5e",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700}}>
+                <div className="w-5 h-5 rounded-lg flex items-center justify-center" style={{background:acSoft+".15)"}}>
+                  <Lock size={11} style={{color:ac}}/>
+                </div>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:ac,letterSpacing:".15em",textTransform:"uppercase",fontWeight:800}}>
                   Recommended Actions
                 </span>
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {PREVENTION[result.scanType]?.map((a,i)=>(
-                  <div key={i} className="flex items-start gap-2.5 text-xs leading-relaxed" style={{color:"var(--text-secondary)"}}>
-                    <CheckCircle size={12} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0,marginTop:1}}/>{a}
-                  </div>
+                  <motion.div key={i} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:.1+i*.07}}
+                    className="flex items-start gap-3 p-3 rounded-xl"
+                    style={{background:acSoft+".05)",border:`1px solid ${acSoft}.1)`}}>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                      style={{background:acSoft+".15)"}}>
+                      <CheckCircle size={11} style={{color:ac}}/>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{color:"var(--text-secondary)"}}>{a}</p>
+                  </motion.div>
                 ))}
               </div>
             </div>
-
           </div>
         </motion.div>
       </motion.div>
@@ -429,20 +469,49 @@ export default function HomePage() {
         <AnimatePresence>
           {loading&&(
             <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="overflow-hidden mt-4">
-              <div className="flex justify-between mb-1.5">
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{phase}</span>
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--accent)"}}>{progress}%</span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{background:"var(--bg-inset)"}}>
-                <motion.div className="h-full rounded-full" style={{background:"linear-gradient(90deg,#0ea5e9,#6366f1)",width:`${progress}%`}} transition={{duration:.2}}/>
-              </div>
-              <div className="flex flex-wrap gap-3 mt-3">
-                {DB_SOURCES.map(db=>(
-                  <div key={db.name} className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full blink" style={{background:db.color}}/>
-                    <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{db.name}</span>
+              {/* Cyber scan bar */}
+              <div className="rounded-2xl p-4" style={{background:"var(--bg-inset)",border:"1px solid var(--border)"}}>
+                {/* Phase + % header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <motion.div className="w-2 h-2 rounded-full bg-sky-400"
+                      animate={{opacity:[1,.3,1],scale:[1,1.3,1]}} transition={{repeat:Infinity,duration:1,ease:"easeInOut"}}/>
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--accent)",letterSpacing:".06em"}}>{phase}</span>
                   </div>
-                ))}
+                  <span style={{fontFamily:"IBM Plex Mono",fontSize:11,fontWeight:700,color:"var(--accent)"}}>{progress}<span style={{fontSize:8,opacity:.6}}>%</span></span>
+                </div>
+
+                {/* Segmented progress bar */}
+                <div className="relative h-3 rounded-full overflow-hidden mb-3" style={{background:"rgba(56,189,248,.08)",border:"1px solid rgba(56,189,248,.15)"}}>
+                  <motion.div className="absolute inset-y-0 left-0 rounded-full"
+                    style={{width:`${progress}%`,background:"linear-gradient(90deg,#0ea5e9,#6366f1,#a855f7)",boxShadow:"0 0 12px rgba(99,102,241,.6)"}}
+                    transition={{duration:.25}}/>
+                  {/* scan shimmer */}
+                  <motion.div className="absolute inset-y-0 w-8 rounded-full"
+                    style={{background:"linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)",left:`${Math.max(0,progress-8)}%`}}
+                    transition={{duration:.25}}/>
+                  {/* tick marks */}
+                  {[25,50,75].map(t=>(
+                    <div key={t} className="absolute top-0 bottom-0 w-px" style={{left:`${t}%`,background:"rgba(56,189,248,.2)"}}/>
+                  ))}
+                </div>
+
+                {/* DB source pills */}
+                <div className="flex flex-wrap gap-1.5">
+                  {DB_SOURCES.map((db,i)=>{
+                    const active = progress > i*(100/DB_SOURCES.length);
+                    return(
+                      <div key={db.name} className="flex items-center gap-1 px-2 py-1 rounded-lg transition-all"
+                        style={{background:active?`${db.color}15`:"transparent",border:`1px solid ${active?db.color+"40":"var(--border)"}`,transition:"all .4s"}}>
+                        <motion.span className="w-1.5 h-1.5 rounded-full"
+                          style={{background:db.color}}
+                          animate={active?{opacity:[1,.4,1]}:{opacity:.3}}
+                          transition={{repeat:active?Infinity:0,duration:.8,delay:i*.15}}/>
+                        <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:active?"var(--text-secondary)":"var(--text-faint)",fontWeight:active?600:400}}>{db.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
           )}
