@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Clock, Radio, Eye } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 
-/* ── Data ── */
 const STATS=[{label:"Breaches",value:"4.2B+",delta:"+12k today",up:false,icon:Database,color:"#f43f5e"},{label:"Records",value:"18.7B",delta:"+890M/mo",up:true,icon:Eye,color:"#38bdf8"},{label:"Blocked",value:"983K",delta:"+2.1%",up:true,icon:Shield,color:"#22c55e"},{label:"Scanners",value:"247",delta:"6 regions",up:true,icon:Radio,color:"#a78bfa"}];
 const THREATS=[{id:1,name:"MOVEit SQL Injection",target:"348 Orgs",sev:"CRITICAL",region:"Global",time:"Live",icon:"💀"},{id:2,name:"LinkedIn Data Dump",target:"87M Profiles",sev:"HIGH",region:"USA/EU",time:"4m",icon:"🔴"},{id:3,name:"AWS S3 Bucket Leak",target:"2.4 TB",sev:"HIGH",region:"US-East-1",time:"11m",icon:"🟠"},{id:4,name:"Aadhaar Portal Leak",target:"6.9M IDs",sev:"CRITICAL",region:"India",time:"22m",icon:"💀"},{id:5,name:"UPI Fraud Smishing",target:"120K Devices",sev:"MEDIUM",region:"IN/PK",time:"35m",icon:"🟡"},{id:6,name:"BreachForums Dump",target:"1.1B Passwords",sev:"CRITICAL",region:"Dark Web",time:"1h",icon:"💀"}];
 const SCANS=[{q:"rohit@hdfc.co.in",t:"EMAIL",s:"Exposed",a:"3m"},{q:"192.168.42.11",t:"IP",s:"Safe",a:"7m"},{q:"9876543210",t:"PHONE",s:"Exposed",a:"12m"},{q:"ABCDE1234F",t:"PAN",s:"Safe",a:"18m"},{q:"malware-cdn.xyz",t:"URL",s:"Exposed",a:"24m"}];
@@ -15,15 +14,15 @@ const PHASES=["Initialising engines…","Querying databases…","Cross-referenci
 
 export default function HomePage() {
   const { dark } = useTheme();
-  const [type,    setType]    = useState("EMAIL");
-  const [id,      setId]      = useState("");
-  const [mode,    setMode]    = useState("API");
+  const [type, setType] = useState("EMAIL");
+  const [id, setId] = useState("");
+  const [mode, setMode] = useState("API");
   const [loading, setLoading] = useState(false);
-  const [prog,    setProg]    = useState(0);
-  const [phase,   setPhase]   = useState("");
-  const [result,  setResult]  = useState(null);
+  const [prog, setProg] = useState(0);
+  const [phase, setPhase] = useState("");
+  const [result, setResult] = useState(null);
   const [focused, setFocused] = useState(false);
-  const [tick,    setTick]    = useState(0);
+  const [tick, setTick] = useState(0);
   const inputRef = useRef(null);
   const API = import.meta?.env?.VITE_API_URL||"http://localhost:5000";
 
@@ -37,23 +36,23 @@ export default function HomePage() {
 
   const handleInput = e => {
     let v=e.target.value;
-    if(type==="PHONE")   v=v.replace(/\D/g,"").slice(0,10);
+    if(type==="PHONE") v=v.replace(/\D/g,"").slice(0,10);
     if(type==="AADHAAR") v=v.replace(/\D/g,"").slice(0,12);
-    if(type==="PAN")     v=v.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,10);
+    if(type==="PAN") v=v.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,10);
     setId(v);
-    if(/^[A-Z]{5}\d{4}[A-Z]$/.test(v))           setType("PAN");
-    else if(/^\d{12}$/.test(v))                   setType("AADHAAR");
+    if(/^[A-Z]{5}\d{4}[A-Z]$/.test(v)) setType("PAN");
+    else if(/^\d{12}$/.test(v)) setType("AADHAAR");
     else if(/^\d{10}$/.test(v)&&type!=="AADHAAR") setType("PHONE");
     else if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) setType("EMAIL");
-    else if(/^(https?:\/\/|www\.)/i.test(v))       setType("URL");
-    else if(/^(\d{1,3}\.){3}\d{1,3}$/.test(v))    setType("IP");
+    else if(/^(https?:\/\/|www\.)/i.test(v)) setType("URL");
+    else if(/^(\d{1,3}\.){3}\d{1,3}$/.test(v)) setType("IP");
   };
 
   const scan = async () => {
     if(!id){inputRef.current?.focus();return;}
     if(type==="PAN"&&!/^[A-Z]{5}\d{4}[A-Z]$/.test(id))return alert("Invalid PAN. Example: ABCDE1234F");
-    if(type==="AADHAAR"&&!/^\d{12}$/.test(id))         return alert("Aadhaar must be 12 digits.");
-    if(type==="PHONE"&&!/^\d{10}$/.test(id))           return alert("Phone must be 10 digits.");
+    if(type==="AADHAAR"&&!/^\d{12}$/.test(id)) return alert("Aadhaar must be 12 digits.");
+    if(type==="PHONE"&&!/^\d{10}$/.test(id)) return alert("Phone must be 10 digits.");
     setLoading(true);setProg(0);setResult(null);
     let ph=0;setPhase(PHASES[0]);
     const pi=setInterval(()=>{setProg(p=>p>=90?p:p+Math.floor(Math.random()*12)+4);ph=Math.min(ph+1,PHASES.length-1);setPhase(PHASES[ph]);},500);
@@ -87,7 +86,6 @@ export default function HomePage() {
     <motion.div variants={stagger} initial="hidden" animate="visible"
       className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 py-4 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-1)"}}>
 
-      {/* Ticker */}
       <motion.div variants={fUp} className="mb-4 rounded-xl overflow-hidden" style={{background:dark?"rgba(12,22,50,.75)":"rgba(255,241,242,.88)",border:dark?"1px solid rgba(244,63,94,.22)":"1px solid rgba(244,63,94,.25)",backdropFilter:"blur(12px)"}}>
         <div className="flex items-center">
           <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{background:dark?"rgba(244,63,94,.1)":"rgba(254,226,226,.6)",borderRight:dark?"1px solid rgba(244,63,94,.18)":"1px solid rgba(244,63,94,.2)"}}>
@@ -108,7 +106,6 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Stats — 2 cols on mobile, 4 on desktop */}
       <motion.div variants={fUp} className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
         {STATS.map(s=>{const Icon=s.icon; return(
           <motion.div key={s.label} whileTap={{scale:.97}} className="glass flex items-center gap-3 p-3.5 sm:p-4">
@@ -124,23 +121,17 @@ export default function HomePage() {
         );})}
       </motion.div>
 
-      {/* ── SCAN PANEL ── */}
       <motion.div variants={fUp} className="scan-panel w-full mx-auto p-4 sm:p-6 lg:p-8 mb-5" style={{maxWidth:720}}>
-
-        {/* Header + mode toggle */}
         <div className="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-3 mb-5">
           <div>
             <h1 className="text-lg sm:text-xl font-bold leading-tight mb-1" style={{color:"var(--text-1)"}}>Breach &amp; Exposure Scanner</h1>
-            <p className="text-xs sm:text-sm" style={{color:"var(--text-3)"}}>
-              Scan across <strong style={{color:"var(--accent)"}}>6 live sources</strong>
-            </p>
+            <p className="text-xs sm:text-sm" style={{color:"var(--text-3)"}}>Scan across <strong style={{color:"var(--accent)"}}>6 live sources</strong></p>
           </div>
           <div className="mode-toggle shrink-0 self-start">
             {["API","LOCAL"].map(m=><button key={m} onClick={()=>setMode(m)} className={`mode-btn ${mode===m?"active":""}`}>{m}</button>)}
           </div>
         </div>
 
-        {/* Type grid — 3 cols on mobile, 6 on sm+ */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-5">
           {TYPES.map(t=>{const Icon=t.icon;const on=type===t.id; return(
             <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.93}}
@@ -152,39 +143,22 @@ export default function HomePage() {
           );})}
         </div>
 
-        {/* Active type indicator */}
         <div className="flex items-center gap-2 mb-2 px-1">
           <div className="w-1 h-4 rounded-full" style={{background:sel?.color}}/>
-          <span style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-2)"}}>
-            Scanning: <strong style={{color:sel?.color}}>{sel?.label}</strong>
-          </span>
+          <span style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-2)"}}>Scanning: <strong style={{color:sel?.color}}>{sel?.label}</strong></span>
           <div className="flex-1"/>
           {id&&<span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}}>{id.length} chars</span>}
         </div>
 
-        {/* Input */}
-        <div className="scan-input-wrap flex items-center gap-2 mb-2"
-          style={focused?{borderColor:`${sel?.color||"var(--accent)"}60`,boxShadow:`0 0 24px -8px ${sel?.color||"var(--accent)"}30`}:{}}>
+        <div className="scan-input-wrap flex items-center gap-2 mb-2" style={focused?{borderColor:`${sel?.color||"var(--accent)"}60`,boxShadow:`0 0 24px -8px ${sel?.color||"var(--accent)"}30`}:{}}>
           {sel&&<sel.icon size={15} style={{color:focused?sel.color:"var(--text-4)",flexShrink:0,transition:"color .2s"}}/>}
-          <input ref={inputRef} value={id} onChange={handleInput}
-            onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
-            onKeyDown={e=>e.key==="Enter"&&scan()}
-            placeholder={sel?.ph||"Enter identifier…"}
-            className="scan-input"/>
-          <AnimatePresence>
-            {id&&<motion.button initial={{opacity:0,scale:.8}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:.8}}
-              onClick={()=>setId("")} className="w-9 h-9 flex items-center justify-center shrink-0"
-              style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-4)"}}>
-              <X size={14}/>
-            </motion.button>}
-          </AnimatePresence>
+          <input ref={inputRef} value={id} onChange={handleInput} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} onKeyDown={e=>e.key==="Enter"&&scan()} placeholder={sel?.ph||"Enter identifier…"} className="scan-input"/>
+          <AnimatePresence>{id&&<motion.button initial={{opacity:0,scale:.8}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:.8}} onClick={()=>setId("")} className="w-9 h-9 flex items-center justify-center shrink-0" style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-4)"}}><X size={14}/></motion.button>}</AnimatePresence>
         </div>
         <p style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-4)"}} className="mb-4 pl-1">{sel?.hint}</p>
 
         <motion.button onClick={scan} disabled={loading||!id} whileTap={!loading&&id?{scale:.98}:{}} className="btn-primary">
-          {loading
-            ? <><motion.span animate={{rotate:360}} transition={{repeat:Infinity,duration:1.2,ease:"linear"}} style={{display:"inline-flex"}}><Crosshair size={16}/></motion.span><span style={{fontFamily:"IBM Plex Mono",fontSize:12}}>{phase}</span></>
-            : <><Zap size={16}/> Start Threat Scan</>}
+          {loading ? <><motion.span animate={{rotate:360}} transition={{repeat:Infinity,duration:1.2,ease:"linear"}} style={{display:"inline-flex"}}><Crosshair size={16}/></motion.span><span style={{fontFamily:"IBM Plex Mono",fontSize:12}}>{phase}</span></> : <><Zap size={16}/> Start Threat Scan</>}
         </motion.button>
 
         <AnimatePresence>
@@ -193,13 +167,10 @@ export default function HomePage() {
               <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}}>{phase}</span>
               <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--accent)"}}>{prog}%</span>
             </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{background:"var(--bg-inset)"}}>
-              <motion.div className="h-full rounded-full" style={{background:"linear-gradient(90deg,#0ea5e9,#6366f1)",width:`${prog}%`}} transition={{duration:.2}}/>
-            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{background:"var(--bg-inset)"}}><motion.div className="h-full rounded-full" style={{background:"linear-gradient(90deg,#0ea5e9,#6366f1)",width:`${prog}%`}} transition={{duration:.2}}/></div>
           </motion.div>}
         </AnimatePresence>
 
-        {/* DB strip */}
         <div className="mt-5 pt-4" style={{borderTop:"1px solid var(--divider)"}}>
           <div className="flex items-center justify-between mb-2.5">
             <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".12em",textTransform:"uppercase"}}>Connected Sources</span>
@@ -217,9 +188,7 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Two-col feed section — stacked on mobile */}
       <motion.div variants={fUp} className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-        {/* Threat feed */}
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
             <div className="flex items-center gap-2"><Activity size={14} className="text-rose-500"/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Global Threat Feed</span></div>
@@ -240,7 +209,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Recent scans */}
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
             <div className="flex items-center gap-2"><Clock size={14} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Recent Scans</span></div>
@@ -257,50 +225,22 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-     
-{/* Footer */}
-<motion.div 
-  variants={fUp} 
-  className="pt-4" 
-  style={{ borderTop: "1px solid var(--divider)" }}
->
-  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    {/* Developer Info */}
-    <p 
-      style={{
-        fontFamily: "IBM Plex Mono",
-        fontSize: "10px", // Slightly increased for better mobile legibility
-        color: "var(--text-4)",
-        letterSpacing: ".1em",
-        textTransform: "uppercase" // Gives it a more professional, "system" look
-      }}
-    >
-      Developer: Fardeen Akmal
-    </p>
+      <motion.div variants={fUp} className="pt-4" style={{ borderTop: "1px solid var(--divider)" }}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <p style={{ fontFamily: "IBM Plex Mono", fontSize: "10px", color: "var(--text-4)", letterSpacing: ".1em", textTransform: "uppercase" }}>
+            Developer: Fardeen Akmal
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {["DPDP Act 2023", "ISO 27001", "SOC 2 Type II"].map((b) => (
+              <span key={b} style={{ fontFamily: "IBM Plex Mono", fontSize: "9px", color: "var(--text-4)", border: "1px solid var(--border)", borderRadius: "4px", padding: "3px 8px", whiteSpace: "nowrap" }}>
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
 
-    {/* Compliance Badges */}
-    <div className="flex flex-wrap gap-2">
-      {["DPDP Act 2023", "ISO 27001", "SOC 2 Type II"].map((b) => (
-        <span 
-          key={b} 
-          style={{
-            fontFamily: "IBM Plex Mono",
-            fontSize: "9px",
-            color: "var(--text-4)",
-            border: "1px solid var(--border)",
-            borderRadius: "4px",
-            padding: "3px 8px",
-            whiteSpace: "nowrap"
-          }}
-        >
-          {b}
-        </span>
-      ))}
-    </div>
-  </div>
-</motion.div>
-
-    {/* ── RESULT MODAL ── */}
     <AnimatePresence>
       {result&&modal&&(
         <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.2}}
@@ -311,7 +251,6 @@ export default function HomePage() {
             className="modal-card w-full sm:max-w-4xl flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden"
             style={{maxHeight:"92vh",border:`1px solid ${modal.safe?"rgba(34,197,94,.22)":"rgba(244,63,94,.28)"}`,boxShadow:"var(--shadow-modal)",fontFamily:"'DM Sans',sans-serif"}}>
 
-            {/* Header */}
             <div className="flex-none flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4" style={{borderBottom:"1px solid var(--divider)",background:dark?"rgba(6,13,31,.8)":"rgba(240,248,255,.95)"}}>
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 blink ${modal.safe?"bg-emerald-500":"bg-rose-500"}`}/>
@@ -321,20 +260,12 @@ export default function HomePage() {
                 <span className={`hidden xs:inline text-[10px] font-bold px-3 py-1 rounded-full border mono ${modal.safe?"text-emerald-500 border-emerald-500/30 bg-emerald-500/10":"text-rose-500 border-rose-500/30 bg-rose-500/10"}`}>
                   {modal.safe?"✓ CLEAN":"⚠ BREACH"}
                 </span>
-                <motion.button onClick={()=>setResult(null)} whileTap={{scale:.9}}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{background:"var(--bg-inset)",border:"1px solid var(--border)",color:"var(--text-3)"}}>
-                  <X size={14}/>
-                </motion.button>
+                <motion.button onClick={()=>setResult(null)} whileTap={{scale:.9}} className="w-9 h-9 rounded-full flex items-center justify-center" style={{background:"var(--bg-inset)",border:"1px solid var(--border)",color:"var(--text-3)"}}><X size={14}/></motion.button>
               </div>
             </div>
 
-            {/* Body — scroll */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{scrollbarWidth:"thin"}}>
-              {/* 3-col on md, stacked on mobile */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-
-                {/* Gauge */}
                 <div className="glass-inset p-4 flex flex-col items-center">
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Risk Score</p>
                   <div className="relative w-28 h-[60px] sm:w-32 sm:h-[68px]">
@@ -349,21 +280,18 @@ export default function HomePage() {
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}} className="mt-0.5">{modal.score} / 100</p>
                 </div>
 
-                {/* Details */}
                 <div className="glass-inset p-4">
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Details</p>
                   <ul className="space-y-2.5">
                     {[{icon:Filter,l:"Type",v:result.scanType},{icon:Globe,l:"Source",v:modal.source,c:true},{icon:AlertTriangle,l:"Breach",v:modal.breach,c:true},{icon:Calendar,l:"Date",v:modal.scanDate}].map(({icon:Icon,l,v,c})=>(
                       <li key={l} className="flex items-center gap-2 text-xs">
-                        <Icon size={11} style={{color:"var(--text-4)",flexShrink:0}}/>
-                        <span className="w-14 shrink-0" style={{color:"var(--text-3)"}}>{l}</span>
+                        <Icon size={11} style={{color:"var(--text-4)",flexShrink:0}}/><span className="w-14 shrink-0" style={{color:"var(--text-3)"}}>{l}</span>
                         <span style={{fontFamily:"IBM Plex Mono",fontWeight:500,fontSize:11,color:c?(modal.safe?"#22c55e":"#f43f5e"):"var(--text-2)"}} className="truncate">{v}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                {/* Exposed */}
                 <div className="glass-inset p-4 flex flex-col">
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Exposed Fields</p>
                   <div className="space-y-1.5 overflow-y-auto flex-1" style={{scrollbarWidth:"thin"}}>
@@ -376,7 +304,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Countermeasures */}
               <div className="rounded-xl p-4 sm:p-5" style={{background:modal.safe?"rgba(34,197,94,.04)":"rgba(244,63,94,.04)",border:`1px solid ${modal.safe?"rgba(34,197,94,.12)":"rgba(244,63,94,.12)"}`}}>
                 <div className="flex items-center gap-2 mb-3"><Lock size={13} style={{color:modal.safe?"#22c55e":"#f43f5e"}}/><h3 style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:modal.safe?"#22c55e":"#f43f5e"}}>Countermeasures</h3></div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
