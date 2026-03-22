@@ -46,14 +46,12 @@ export default function App() {
   const isGuest = user?.isGuest;
   const at = p => loc.pathname === p;
 
-  /* nav link style */
   const nl = (active, gov=false) => {
     const base = "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200";
     if (active) return `${base} ${gov?"text-cyan-400 bg-cyan-400/10 border border-cyan-400/20":"text-sky-400 bg-sky-400/10 border border-sky-400/20"}`;
     return `${base} ${dark?"text-slate-400 hover:text-white hover:bg-white/5 border border-transparent":"text-slate-500 hover:text-slate-900 hover:bg-black/5 border border-transparent"}`;
   };
 
-  /* bottom nav items */
   const navItems = [
     { path:"/home",          label:"Scanner",   icon:Home,          show:true },
     { path:"/dashboard",     label:"Dashboard", icon:LayoutDashboard,show:!isGuest && !isGov },
@@ -62,15 +60,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{fontFamily:"'DM Sans',sans-serif",background:"var(--bg-base)",color:"var(--text-1)"}}>
-
-      {/* mesh bg */}
       <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden>
         <div style={{position:"absolute",top:"-20%",left:"-10%",width:"55%",height:"55%",background:dark?"radial-gradient(ellipse,rgba(56,189,248,.05) 0%,transparent 68%)":"radial-gradient(ellipse,rgba(14,120,200,.07) 0%,transparent 68%)",filter:"blur(60px)"}}/>
         <div style={{position:"absolute",bottom:"-20%",right:"-10%",width:"55%",height:"55%",background:dark?"radial-gradient(ellipse,rgba(99,102,241,.05) 0%,transparent 68%)":"radial-gradient(ellipse,rgba(8,145,178,.06) 0%,transparent 68%)",filter:"blur(60px)"}}/>
-        <div style={{position:"absolute",inset:0,opacity:dark?.015:.025,backgroundImage:"linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)",backgroundSize:"48px 48px"}}/>
+        <div style={{position:"absolute",inset:0,opacity:dark?0.015:0.025,backgroundImage:"linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)",backgroundSize:"48px 48px"}}/>
       </div>
 
-      {/* ── TOP NAV (hidden on mobile when logged in) ── */}
       <AnimatePresence>
         {!hideAll && (
           <motion.nav initial={{y:-56,opacity:0}} animate={{y:0,opacity:1}} exit={{y:-56,opacity:0}}
@@ -78,20 +73,15 @@ export default function App() {
             className="nav-glass relative z-30 px-4 sm:px-6 flex justify-between items-center sticky top-0"
             style={{paddingBottom:12}}>
 
-            {/* Logo */}
             <motion.div className="flex items-center gap-2.5 cursor-pointer" onClick={()=>nav("/home")} whileTap={{scale:.97}}>
               <Shield className="text-sky-400 w-6 h-6 sm:w-7 sm:h-7" style={{filter:"drop-shadow(0 0 8px rgba(56,189,248,.55))"}}/>
-              <div>
-                <div className="font-black text-base sm:text-[17px] tracking-widest flex items-center gap-1.5" style={{color:"var(--text-1)"}}>
-                  ECEBIP
-                  <span style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--accent)",border:"1px solid var(--accent-border)",padding:"1px 5px",borderRadius:5,background:"var(--accent-soft)"}}>PRO</span>
-                  {isGov&&<span style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--gov-color)",border:"1px solid rgba(34,211,238,.3)",padding:"1px 5px",borderRadius:5,background:"var(--gov-soft)"}}>GOV</span>}
-                </div>
-                <div className="text-[9px] uppercase tracking-widest hidden sm:block" style={{color:"var(--text-4)"}}>G.V. Acharya Inst.</div>
+              <div className="font-black text-base sm:text-[17px] tracking-widest flex items-center gap-1.5" style={{color:"var(--text-1)"}}>
+                ECEBIP
+                <span style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--accent)",border:"1px solid var(--accent-border)",padding:"1px 5px",borderRadius:5,background:"var(--accent-soft)"}}>PRO</span>
+                {isGov&&<span style={{fontSize:9,fontFamily:"IBM Plex Mono",color:"var(--gov-color)",border:"1px solid rgba(34,211,238,.3)",padding:"1px 5px",borderRadius:5,background:"var(--gov-soft)"}}>GOV</span>}
               </div>
             </motion.div>
 
-            {/* Desktop nav — hidden on mobile (bottom nav handles it) */}
             <div className="hidden sm:flex items-center gap-1">
               <motion.button onClick={toggle} whileHover={{scale:1.08}} whileTap={{scale:.92}}
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -154,7 +144,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Mobile header right — theme + user avatar */}
             <div className="flex sm:hidden items-center gap-2">
               <motion.button onClick={toggle} whileTap={{scale:.9}}
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -173,7 +162,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Mobile slide-down user menu */}
       <AnimatePresence>
         {menuOpen&&!hideAll&&(
           <motion.div initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}} exit={{height:0,opacity:0}}
@@ -196,7 +184,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* ── Page content ── */}
       <div className={`flex-grow relative z-10 ${!hideAll?"has-bottom-nav sm:pb-0":""}`}>
         <AnimatePresence mode="wait">
           <Routes location={loc} key={loc.pathname}>
@@ -211,7 +198,6 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {/* ── MOBILE BOTTOM NAV ── */}
       {!hideAll && user && (
         <nav className="bottom-nav sm:hidden z-30 flex items-end">
           <div className="flex w-full px-2 pt-2">
@@ -236,7 +222,6 @@ export default function App() {
                 </Link>
               );
             })}
-            {/* Theme toggle in bottom nav */}
             <button onClick={toggle} className="bottom-nav-item" style={{color:"var(--text-3)"}}>
               {dark?<Sun size={20}/>:<Moon size={20}/>}
               <span style={{fontSize:10,fontFamily:"IBM Plex Mono",fontWeight:600,letterSpacing:".06em"}}>{dark?"Light":"Dark"}</span>
