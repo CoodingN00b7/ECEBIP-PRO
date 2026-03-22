@@ -129,82 +129,89 @@ export default function HomePage() {
   return (
     <>
     <motion.div variants={stagger} initial="hidden" animate="visible"
-      className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 lg:px-14 py-4 sm:py-6 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-primary)"}}>
+      className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 lg:px-14 pb-8 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-primary)"}}>
 
-      {/* Ticker */}
-      <motion.div variants={fUp} className="mb-5 rounded-xl overflow-hidden" style={{background:dark?"rgba(12,22,50,.75)":"rgba(255,241,242,.85)",border:dark?"1px solid rgba(244,63,94,.22)":"1px solid rgba(244,63,94,.25)",backdropFilter:"blur(12px)"}}>
-        <div className="flex items-center">
-          <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{background:dark?"rgba(244,63,94,.1)":"rgba(254,226,226,.6)",borderRight:dark?"1px solid rgba(244,63,94,.18)":"1px solid rgba(244,63,94,.2)"}}>
-            <span className="w-2 h-2 rounded-full bg-rose-500 blink inline-block"/>
-            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,color:"#f43f5e",letterSpacing:".12em",textTransform:"uppercase"}} className="hidden sm:block">Live Threats</span>
-          </div>
+      {/* ── HERO HEADER ── */}
+      <motion.div variants={fUp} className="text-center pt-8 pb-6 px-2">
+        <motion.div
+          initial={{scale:0.8,opacity:0}} animate={{scale:1,opacity:1}} transition={{type:"spring",stiffness:260,damping:20,delay:.05}}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
+          style={{background:dark?"rgba(244,63,94,.1)":"rgba(254,226,226,.7)",border:"1px solid rgba(244,63,94,.25)"}}>
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 blink"/>
+          <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,color:"#f43f5e",letterSpacing:".15em",textTransform:"uppercase"}}>Live Threat Intelligence</span>
+        </motion.div>
+
+        <h1 className="font-black leading-none tracking-tight mb-3"
+          style={{fontSize:"clamp(2.4rem,10vw,4rem)",background:"linear-gradient(135deg,#e8f4fd 0%,#38bdf8 40%,#6366f1 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>
+          Breach<br/>Detector
+        </h1>
+        <p className="text-sm sm:text-base leading-relaxed max-w-sm mx-auto" style={{color:"var(--text-muted)"}}>
+          Check if your digital identity is exposed across <strong style={{color:"var(--accent)"}}>6 live intelligence sources</strong>
+        </p>
+
+        {/* Live ticker pill */}
+        <div className="mt-4 inline-flex items-center gap-2 max-w-xs overflow-hidden">
           <AnimatePresence mode="wait">
-            <motion.div key={tickIdx} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} transition={{duration:.3}}
-              className="flex items-center gap-2.5 px-4 py-2.5 flex-1 min-w-0">
-              <span className="text-sm shrink-0">{LIVE_THREATS[tickIdx].icon}</span>
-              <span style={{fontWeight:600,color:"var(--text-primary)"}} className="truncate">{LIVE_THREATS[tickIdx].name}</span>
-              <span style={{color:"var(--text-faint)"}} className="hidden sm:block">· {LIVE_THREATS[tickIdx].target}</span>
+            <motion.div key={tickIdx} initial={{opacity:0,x:12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-12}} transition={{duration:.28}}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs truncate"
+              style={{background:dark?"rgba(15,23,42,.6)":"rgba(240,249,255,.8)",border:"1px solid var(--border)"}}>
+              <span>{LIVE_THREATS[tickIdx].icon}</span>
+              <span className="truncate" style={{color:"var(--text-secondary)",fontFamily:"IBM Plex Mono",fontSize:10}}>{LIVE_THREATS[tickIdx].name}</span>
+              <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)",flexShrink:0}}>{LIVE_THREATS[tickIdx].time}</span>
             </motion.div>
           </AnimatePresence>
-          <div className="px-3 py-2.5 shrink-0" style={{borderLeft:"1px solid var(--divider)"}}>
-            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{LIVE_THREATS[tickIdx].time}</span>
-          </div>
         </div>
       </motion.div>
 
-      {/* Stats */}
-      <motion.div variants={fUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      {/* ── STATS ROW ── */}
+      <motion.div variants={fUp} className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
         {GLOBAL_STATS.map(s=>{const Icon=s.icon;return(
-          <motion.div key={s.label} whileHover={{y:-2,scale:1.02}} className="glass flex items-center gap-3.5 p-4">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${s.color}14`,border:`1px solid ${s.color}30`}}>
-              <Icon size={16} style={{color:s.color}}/>
+          <div key={s.label} className="glass flex items-center gap-2.5 p-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:`${s.color}14`,border:`1px solid ${s.color}28`}}>
+              <Icon size={14} style={{color:s.color}}/>
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-base sm:text-lg leading-tight stat-val" style={{fontFamily:"IBM Plex Mono"}}>{s.value}</div>
-              <div className="text-[10px] sm:text-[11px] leading-tight truncate" style={{color:"var(--text-muted)"}}>{s.label}</div>
-              <div className="text-[9px] sm:text-[10px] leading-tight" style={{fontFamily:"IBM Plex Mono",color:s.up?"#22c55e":"#f43f5e"}}>{s.delta}</div>
+              <div className="font-bold text-sm leading-tight" style={{fontFamily:"IBM Plex Mono",color:"var(--text-primary)"}}>{s.value}</div>
+              <div className="text-[10px] leading-tight truncate" style={{color:"var(--text-muted)"}}>{s.label}</div>
             </div>
-          </motion.div>
+          </div>
         );})}
       </motion.div>
 
       {/* ── SCAN PANEL ── */}
-      <motion.div variants={fUp} className="scan-panel max-w-3xl w-full mx-auto p-4 sm:p-8 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold leading-tight mb-1.5" style={{color:"var(--text-primary)"}}>Breach &amp; Exposure Scanner</h1>
-            <p className="text-sm leading-relaxed" style={{color:"var(--text-muted)"}}>
-              Check if your digital identity is compromised across{" "}
-              <strong style={{color:"var(--accent)"}}>6 live intelligence sources</strong>.
-            </p>
-          </div>
-          <div className="mode-toggle shrink-0 self-start">
+      <motion.div variants={fUp} className="scan-panel w-full max-w-2xl mx-auto p-5 sm:p-8 mb-5">
+
+        {/* Mode toggle */}
+        <div className="flex items-center justify-between mb-5">
+          <span style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-muted)",letterSpacing:".08em",textTransform:"uppercase"}}>Scan Mode</span>
+          <div className="mode-toggle">
             {["API","LOCAL"].map(m=>(
               <button key={m} onClick={()=>setMode(m)} className={`mode-btn ${mode===m?"active":""}`}>{m}</button>
             ))}
           </div>
         </div>
 
-        {/* Type buttons */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 mb-5 sm:mb-6">
+        {/* Type buttons — horizontal scroll on mobile */}
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1" style={{scrollbarWidth:"none",msOverflowStyle:"none"}}>
           {SCAN_TYPES.map(t=>{const Icon=t.icon;const on=type===t.id;return(
-            <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.95}} whileHover={{y:-1}}
-              className={`type-btn ${on?"":"type-btn-off"}`}
-              style={on?{background:`${t.color}11`,border:`1.5px solid ${t.color}50`,boxShadow:`0 0 20px -6px ${t.color}50`}:{}}>
-              <Icon size={17} style={{color:on?t.color:"var(--text-muted)"}}/>
-              <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:600,letterSpacing:".08em",color:on?dark?"#e8f4fd":"#0c1f3a":"var(--text-muted)"}}>{t.label}</span>
+            <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.93}}
+              className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl shrink-0 transition-all"
+              style={on
+                ?{background:`${t.color}14`,border:`1.5px solid ${t.color}55`,boxShadow:`0 0 18px -6px ${t.color}50`}
+                :{background:"var(--bg-inset)",border:"1px solid var(--border)",opacity:.7}}>
+              <Icon size={18} style={{color:on?t.color:"var(--text-muted)"}}/>
+              <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".06em",color:on?t.color:"var(--text-muted)",whiteSpace:"nowrap"}}>{t.label}</span>
             </motion.button>
           );})}
         </div>
 
-        {/* Active type indicator */}
-        <div className="flex items-center gap-2 mb-2.5 px-1">
+        {/* Active type pill */}
+        <div className="flex items-center gap-2 mb-3">
           <div className="w-1 h-4 rounded-full" style={{background:selType?.color}}/>
           <span style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-secondary)"}}>
             Scanning: <strong style={{color:selType?.color}}>{selType?.label}</strong>
           </span>
-          <div className="flex-1"/>
-          {identifier&&<span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{identifier.length} chars</span>}
+          {identifier&&<span className="ml-auto" style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{identifier.length} chars</span>}
         </div>
 
         {/* Input */}
@@ -255,14 +262,14 @@ export default function HomePage() {
         </AnimatePresence>
 
         {/* DB coverage strip */}
-        <div className="mt-6 pt-5" style={{borderTop:"1px solid var(--divider)"}}>
+        <div className="mt-5 pt-5" style={{borderTop:"1px solid var(--divider)"}}>
           <div className="flex items-center justify-between mb-3">
             <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)",letterSpacing:".12em",textTransform:"uppercase"}}>Connected Sources</span>
             <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#22c55e"}}>5 / 6 Online</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {DB_SOURCES.map(db=>(
-              <div key={db.name} className="glass-inset flex items-center gap-2.5 px-3 py-2 cursor-default">
+              <div key={db.name} className="glass-inset flex items-center gap-2 px-3 py-2 cursor-default">
                 <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{background:db.color,boxShadow:`0 0 5px ${db.color}`}}/>
                 <span className="text-xs font-medium truncate" style={{color:"var(--text-secondary)"}}>{db.name}</span>
                 <span className="ml-auto shrink-0" style={{fontFamily:"IBM Plex Mono",fontSize:10,color:db.status==="Online"?"#22c55e":"#f97316"}}>{db.latency}</span>
@@ -272,56 +279,55 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Bottom feed */}
-      <motion.div variants={fUp} className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 max-w-6xl w-full mx-auto">
+      {/* ── BOTTOM FEED ── */}
+      <motion.div variants={fUp} className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 max-w-4xl w-full mx-auto">
+
         {/* Threat feed */}
         <div className="glass overflow-hidden p-0">
-          <div className="flex items-center justify-between px-5 py-3.5" style={{borderBottom:"1px solid var(--divider)"}}>
-            <div className="flex items-center gap-2.5"><Activity size={15} className="text-rose-500"/><span className="font-semibold text-sm" style={{color:"var(--text-primary)"}}>Global Threat Feed</span></div>
+          <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div className="flex items-center gap-2"><Activity size={14} className="text-rose-500"/><span className="font-semibold text-sm" style={{color:"var(--text-primary)"}}>Global Threat Feed</span></div>
             <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-rose-500 blink"/><span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>Live</span></div>
           </div>
           {LIVE_THREATS.map(t=>(
-            <motion.div key={t.id} whileHover={{backgroundColor:dark?"rgba(56,189,248,.03)":"rgba(3,105,161,.03)"}}
-              className="flex items-center gap-3 px-5 py-3 cursor-default transition-colors" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div key={t.id} className="flex items-center gap-3 px-4 py-2.5" style={{borderBottom:"1px solid var(--divider)"}}>
               <span className="text-sm shrink-0">{t.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{color:"var(--text-primary)"}}>{t.name}</p>
-                <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>{t.region} · {t.target}</p>
+                <p className="text-xs font-semibold truncate" style={{color:"var(--text-primary)"}}>{t.name}</p>
+                <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-muted)"}}>{t.region} · {t.target}</p>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${SEV_BADGE[t.sev]}`} style={{fontFamily:"IBM Plex Mono"}}>{t.sev}</span>
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>{t.time}</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${SEV_BADGE[t.sev]}`} style={{fontFamily:"IBM Plex Mono"}}>{t.sev}</span>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)"}}>{t.time}</span>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Cyber Security Tips */}
         <div className="glass overflow-hidden p-0">
-          <div className="flex items-center justify-between px-5 py-3.5" style={{borderBottom:"1px solid var(--divider)"}}>
-            <div className="flex items-center gap-2.5"><Shield size={15} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-primary)"}}>Cyber Security Tips</span></div>
-            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#22c55e"}}>Stay Protected</span>
+          <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
+            <div className="flex items-center gap-2"><Shield size={14} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-primary)"}}>Security Tips</span></div>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#22c55e"}}>Stay Safe</span>
           </div>
           {[
-            { icon:"🔐", tip:"Use a unique, strong password for every account — a password manager helps.", tag:"Passwords" },
-            { icon:"📱", tip:"Enable 2-Factor Authentication (2FA) on all banking and email accounts.", tag:"2FA" },
-            { icon:"🔗", tip:"Never click links in unexpected SMS or emails — visit official sites directly.", tag:"Phishing" },
-            { icon:"📡", tip:"Avoid public Wi-Fi for banking. Use a trusted VPN on shared networks.", tag:"Network" },
-            { icon:"🪪", tip:"Lock your Aadhaar biometrics via the mAadhaar app when not in use.", tag:"Aadhaar" },
+            { icon:"🔐", tip:"Use a unique strong password for every account.", tag:"Passwords" },
+            { icon:"📱", tip:"Enable 2FA on all banking and email accounts.", tag:"2FA" },
+            { icon:"🔗", tip:"Never click links in unexpected SMS or emails.", tag:"Phishing" },
+            { icon:"📡", tip:"Avoid public Wi-Fi for banking; use a VPN.", tag:"Network" },
+            { icon:"🪪", tip:"Lock your Aadhaar biometrics via mAadhaar app.", tag:"Aadhaar" },
           ].map((item,i,arr)=>(
-            <motion.div key={i} whileHover={{backgroundColor:dark?"rgba(56,189,248,.04)":"rgba(3,105,161,.03)"}}
-              className="flex items-start gap-3 px-5 py-3 transition-colors cursor-default" style={{borderBottom:i<arr.length-1?"1px solid var(--divider)":"none"}}>
-              <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
-              <p className="flex-1 text-sm leading-relaxed" style={{color:"var(--text-secondary)"}}>{item.tip}</p>
-              <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold self-start mt-0.5"
+            <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{borderBottom:i<arr.length-1?"1px solid var(--divider)":"none"}}>
+              <span className="text-sm shrink-0">{item.icon}</span>
+              <p className="flex-1 text-xs leading-snug" style={{color:"var(--text-secondary)"}}>{item.tip}</p>
+              <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold"
                 style={{fontFamily:"IBM Plex Mono",color:"var(--accent)",background:"var(--accent-soft)",border:"1px solid var(--accent-border)"}}>{item.tag}</span>
-            </motion.div>
+            </div>
           ))}
         </div>
       </motion.div>
 
       {/* Footer */}
-      <motion.div variants={fUp} className="mt-auto pt-4" style={{borderTop:"1px solid var(--divider)"}}>
+      <motion.div variants={fUp} className="pt-4 pb-2" style={{borderTop:"1px solid var(--divider)"}}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)",letterSpacing:".1em"}}>Developer: Fardeen Akmal</p>
           <div className="flex flex-wrap gap-2">
