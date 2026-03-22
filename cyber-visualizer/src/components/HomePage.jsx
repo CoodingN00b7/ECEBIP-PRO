@@ -5,7 +5,7 @@ import { useTheme } from "../ThemeContext";
 
 const STATS=[{label:"Breaches",value:"4.2B+",delta:"+12k today",up:false,icon:Database,color:"#f43f5e"},{label:"Records",value:"18.7B",delta:"+890M/mo",up:true,icon:Eye,color:"#38bdf8"},{label:"Blocked",value:"983K",delta:"+2.1%",up:true,icon:Shield,color:"#22c55e"},{label:"Scanners",value:"247",delta:"6 regions",up:true,icon:Radio,color:"#a78bfa"}];
 const THREATS=[{id:1,name:"MOVEit SQL Injection",target:"348 Orgs",sev:"CRITICAL",region:"Global",time:"Live",icon:"💀"},{id:2,name:"LinkedIn Data Dump",target:"87M Profiles",sev:"HIGH",region:"USA/EU",time:"4m",icon:"🔴"},{id:3,name:"AWS S3 Bucket Leak",target:"2.4 TB",sev:"HIGH",region:"US-East-1",time:"11m",icon:"🟠"},{id:4,name:"Aadhaar Portal Leak",target:"6.9M IDs",sev:"CRITICAL",region:"India",time:"22m",icon:"💀"},{id:5,name:"UPI Fraud Smishing",target:"120K Devices",sev:"MEDIUM",region:"IN/PK",time:"35m",icon:"🟡"},{id:6,name:"BreachForums Dump",target:"1.1B Passwords",sev:"CRITICAL",region:"Dark Web",time:"1h",icon:"💀"}];
-const SCANS=[{q:"rohit@hdfc.co.in",t:"EMAIL",s:"Exposed",a:"3m"},{q:"192.168.42.11",t:"IP",s:"Safe",a:"7m"},{q:"9876543210",t:"PHONE",s:"Exposed",a:"12m"},{q:"ABCDE1234F",t:"PAN",s:"Safe",a:"18m"},{q:"malware-cdn.xyz",t:"URL",s:"Exposed",a:"24m"}];
+const CVES=[{id:"CVE-2026-3021",desc:"Chromium V8 Type Confusion",score:"9.8",crit:true},{id:"CVE-2026-1194",desc:"Windows Kernel Elev. Privilege",score:"8.4",crit:false},{id:"CVE-2026-0045",desc:"OpenSSL Memory Leak",score:"7.5",crit:false},{id:"CVE-2026-4412",desc:"PostgreSQL Auth Bypass",score:"9.1",crit:true},{id:"CVE-2026-2990",desc:"Cisco IOS XE Web UI RCE",score:"10.0",crit:true}];
 const DBS=[{name:"HaveIBeenPwned",r:"13.8B",ok:true,ms:"12ms",c:"#38bdf8"},{name:"LeakCheck Pro",r:"9.2B",ok:true,ms:"18ms",c:"#a78bfa"},{name:"BreachDirectory",r:"7.6B",ok:true,ms:"24ms",c:"#22c55e"},{name:"VirusTotal",r:"900M",ok:true,ms:"31ms",c:"#eab308"},{name:"AbuseIPDB",r:"4.1B",ok:false,ms:"88ms",c:"#f97316"},{name:"Numverify",r:"2.8B",ok:true,ms:"14ms",c:"#f472b6"}];
 const TYPES=[{id:"EMAIL",label:"Email",icon:Mail,color:"#0ea5e9",ph:"Enter email",hint:"e.g. user@gmail.com"},{id:"PHONE",label:"Phone",icon:Smartphone,color:"#10b981",ph:"10-digit mobile",hint:"e.g. 9876543210"},{id:"AADHAAR",label:"Aadhaar",icon:Shield,color:"#f97316",ph:"12-digit Aadhaar",hint:"e.g. 123412341234"},{id:"PAN",label:"PAN",icon:CreditCard,color:"#eab308",ph:"PAN card no.",hint:"e.g. ABCDE1234F"},{id:"IP",label:"IP",icon:Wifi,color:"#8b5cf6",ph:"IPv4 address",hint:"e.g. 103.21.40.0"},{id:"URL",label:"URL",icon:LinkIcon,color:"#ec4899",ph:"Domain / URL",hint:"e.g. https://xyz.com"}];
 const PREV={EMAIL:["Monitor transactions linked to this email.","Enable 2FA immediately.","Check OAuth apps for unauthorised access.","Never share OTPs via email."],PHONE:["Never share OTPs over phone calls.","Beware Smishing links.","Register on TRAI DND registry.","Contact carrier to prevent SIM-swap."],AADHAAR:["Lock biometrics via mAadhaar app.","Use VID instead of real Aadhaar.","Review Aadhaar auth history.","Never share unmasked photocopies."],PAN:["Monitor CIBIL for unknown loans.","Check ITR for unauthorised returns.","Avoid sharing PAN on untrusted sites.","Report to NSDL immediately."],IP:["Restart router for fresh IP.","Use a no-log VPN.","Update router firmware.","Run a full malware scan."],URL:["Don't enter credentials here.","Report to Google Safe Browsing.","Enable browser phishing protection.","Clear cache, cookies and storage."]};
@@ -211,114 +211,17 @@ export default function HomePage() {
 
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
-            <div className="flex items-center gap-2"><Clock size={14} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Recent Scans</span></div>
-            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>Anonymised</span>
+            <div className="flex items-center gap-2"><Shield size={14} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Trending Vulnerabilities</span></div>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)"}}>Top CVEs</span>
           </div>
-          {SCANS.map((r,i)=>(
-            <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 row-hover transition-colors" style={{borderBottom:i<SCANS.length-1?"1px solid var(--divider)":"none"}}>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${r.s==="Exposed"?"bg-rose-500":"bg-emerald-500"}`}/>
-              <span className="flex-1 truncate" style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-2)"}}>{r.q}</span>
-              <span className="shrink-0 px-1.5 py-0.5 rounded border" style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",borderColor:"var(--border)"}}>{r.t}</span>
-              <span className={`shrink-0 font-semibold mono text-[11px] ${r.s==="Exposed"?"text-rose-500":"text-emerald-500"}`}>{r.s}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      <motion.div variants={fUp} className="pt-4" style={{ borderTop: "1px solid var(--divider)" }}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <p style={{ fontFamily: "IBM Plex Mono", fontSize: "10px", color: "var(--text-4)", letterSpacing: ".1em", textTransform: "uppercase" }}>
-            Developer: Fardeen Akmal
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {["DPDP Act 2023", "ISO 27001", "SOC 2 Type II"].map((b) => (
-              <span key={b} style={{ fontFamily: "IBM Plex Mono", fontSize: "9px", color: "var(--text-4)", border: "1px solid var(--border)", borderRadius: "4px", padding: "3px 8px", whiteSpace: "nowrap" }}>
-                {b}
-              </span>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-
-    <AnimatePresence>
-      {result&&modal&&(
-        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.2}}
-          className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 modal-overlay"
-          onClick={()=>setResult(null)}>
-          <motion.div initial={{y:50,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} transition={{type:"spring",stiffness:340,damping:28}}
-            onClick={e=>e.stopPropagation()}
-            className="modal-card w-full sm:max-w-4xl flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden"
-            style={{maxHeight:"92vh",border:`1px solid ${modal.safe?"rgba(34,197,94,.22)":"rgba(244,63,94,.28)"}`,boxShadow:"var(--shadow-modal)",fontFamily:"'DM Sans',sans-serif"}}>
-
-            <div className="flex-none flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4" style={{borderBottom:"1px solid var(--divider)",background:dark?"rgba(6,13,31,.8)":"rgba(240,248,255,.95)"}}>
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className={`w-2.5 h-2.5 rounded-full shrink-0 blink ${modal.safe?"bg-emerald-500":"bg-rose-500"}`}/>
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:13,fontWeight:600,color:"var(--text-1)"}} className="truncate">{result.queryId}</span>
+          {CVES.map((cve,i)=>(
+            <div key={cve.id} className="flex items-center gap-2.5 px-4 py-2.5 row-hover transition-colors" style={{borderBottom:i<CVES.length-1?"1px solid var(--divider)":"none"}}>
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cve.crit?"bg-rose-500":"bg-orange-500"}`}/>
+              <div className="flex-1 min-w-0">
+                <p style={{fontFamily:"IBM Plex Mono",fontSize:11,color:"var(--text-2)",fontWeight:600}}>{cve.id}</p>
+                <p className="truncate" style={{fontSize:10,color:"var(--text-3)"}}>{cve.desc}</p>
               </div>
-              <div className="flex items-center gap-2.5 shrink-0 ml-3">
-                <span className={`hidden xs:inline text-[10px] font-bold px-3 py-1 rounded-full border mono ${modal.safe?"text-emerald-500 border-emerald-500/30 bg-emerald-500/10":"text-rose-500 border-rose-500/30 bg-rose-500/10"}`}>
-                  {modal.safe?"✓ CLEAN":"⚠ BREACH"}
-                </span>
-                <motion.button onClick={()=>setResult(null)} whileTap={{scale:.9}} className="w-9 h-9 rounded-full flex items-center justify-center" style={{background:"var(--bg-inset)",border:"1px solid var(--border)",color:"var(--text-3)"}}><X size={14}/></motion.button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{scrollbarWidth:"thin"}}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                <div className="glass-inset p-4 flex flex-col items-center">
-                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Risk Score</p>
-                  <div className="relative w-28 h-[60px] sm:w-32 sm:h-[68px]">
-                    <svg viewBox="0 0 100 50" className="absolute inset-0 w-full h-full overflow-visible">
-                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--border)" strokeWidth="6" strokeLinecap="round"/>
-                      <motion.path initial={{strokeDashoffset:125.6}} animate={{strokeDashoffset:125.6-(modal.score/100)*125.6}} transition={{duration:1.3,ease:"easeOut",delay:.2}} d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={modal.gc} strokeWidth="6" strokeLinecap="round" strokeDasharray={125.6} style={{filter:`drop-shadow(0 0 7px ${modal.gc})`}}/>
-                    </svg>
-                    <motion.div className="absolute bottom-0 rounded-t-full origin-bottom" style={{left:"calc(50% - 2.5px)",width:"5px",height:"42px",background:modal.gc}} initial={{rotate:-90}} animate={{rotate:-90+(modal.score/100)*180}} transition={{duration:1.3,ease:"easeOut",delay:.2}}/>
-                    <div className="absolute w-2.5 h-2.5 rounded-full z-10" style={{bottom:-4,left:"calc(50% - 5px)",background:"var(--bg-glass-2)",border:`2px solid ${modal.gc}`}}/>
-                  </div>
-                  <p style={{fontFamily:"IBM Plex Mono",fontSize:18,fontWeight:700,color:modal.rc}} className="mt-3">{modal.level}</p>
-                  <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}} className="mt-0.5">{modal.score} / 100</p>
-                </div>
-
-                <div className="glass-inset p-4">
-                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Details</p>
-                  <ul className="space-y-2.5">
-                    {[{icon:Filter,l:"Type",v:result.scanType},{icon:Globe,l:"Source",v:modal.source,c:true},{icon:AlertTriangle,l:"Breach",v:modal.breach,c:true},{icon:Calendar,l:"Date",v:modal.scanDate}].map(({icon:Icon,l,v,c})=>(
-                      <li key={l} className="flex items-center gap-2 text-xs">
-                        <Icon size={11} style={{color:"var(--text-4)",flexShrink:0}}/><span className="w-14 shrink-0" style={{color:"var(--text-3)"}}>{l}</span>
-                        <span style={{fontFamily:"IBM Plex Mono",fontWeight:500,fontSize:11,color:c?(modal.safe?"#22c55e":"#f43f5e"):"var(--text-2)"}} className="truncate">{v}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="glass-inset p-4 flex flex-col">
-                  <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Exposed Fields</p>
-                  <div className="space-y-1.5 overflow-y-auto flex-1" style={{scrollbarWidth:"thin"}}>
-                    {modal.list.map((item,i)=>(
-                      <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium" style={{background:modal.safe?"rgba(34,197,94,.06)":"rgba(244,63,94,.06)",border:`1px solid ${modal.safe?"rgba(34,197,94,.14)":"rgba(244,63,94,.14)"}`,color:"var(--text-2)"}}>
-                        <LayoutTemplate size={10} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0}}/>{item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl p-4 sm:p-5" style={{background:modal.safe?"rgba(34,197,94,.04)":"rgba(244,63,94,.04)",border:`1px solid ${modal.safe?"rgba(34,197,94,.12)":"rgba(244,63,94,.12)"}`}}>
-                <div className="flex items-center gap-2 mb-3"><Lock size={13} style={{color:modal.safe?"#22c55e":"#f43f5e"}}/><h3 style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:modal.safe?"#22c55e":"#f43f5e"}}>Countermeasures</h3></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {PREV[result.scanType]?.map((a,i)=>(
-                    <div key={i} className="flex items-start gap-2 text-sm" style={{color:"var(--text-2)"}}>
-                      <CheckCircle size={12} style={{color:modal.safe?"#22c55e":"#f43f5e",flexShrink:0,marginTop:2}}/>{a}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-    </>
-  );
-}
+              <div className="shrink-0 flex flex-col items-end">
+                <span className={`font-semibold mono text-[11px] ${cve.crit?"text-rose-500":"text-orange-500"}`}>{cve.score}</span>
+                <span style={{fontSize:8,color:"var(--text-4)",textTransform:"uppercase"}}>CVSS</span>
+  
