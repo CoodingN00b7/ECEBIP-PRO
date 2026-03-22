@@ -52,13 +52,21 @@ const SEV_BADGE = {
   MEDIUM:  "bg-amber-500/10 text-amber-400 border border-amber-500/30",
 };
 const PHASES = ["Initialising scan engines…","Querying breach databases…","Cross-referencing threat intel…","Generating risk report…"];
-const TECH_STACK = [
-  { name:"React 18", icon:"⚛️", desc:"UI" },
-  { name:"Vite",     icon:"⚡",  desc:"Build" },
-  { name:"Tailwind", icon:"🎨",  desc:"Style" },
-  { name:"Framer",   icon:"🎭",  desc:"Motion" },
-  { name:"Node.js",  icon:"🟢",  desc:"Backend" },
-  { name:"MongoDB",  icon:"🍃",  desc:"Database" },
+const THREAT_CATEGORIES = [
+  { label:"Nation-State APTs",   count:"12 active",  color:"#f43f5e", icon:"🏴" },
+  { label:"Ransomware Groups",   count:"8 tracked",  color:"#f97316", icon:"💰" },
+  { label:"Data Brokers",        count:"340+ sites", color:"#eab308", icon:"📦" },
+  { label:"Phishing Kits",       count:"2.1K live",  color:"#a78bfa", icon:"🎣" },
+  { label:"Dark Web Markets",    count:"47 indexed", color:"#ec4899", icon:"🕸️" },
+  { label:"Zero-Day Exploits",   count:"19 unpatched",color:"#38bdf8",icon:"💣" },
+];
+const BREACH_TIMELINE = [
+  { year:"2017", event:"Aadhaar data of 1.1B citizens exposed",     scale:"1.1B" },
+  { year:"2019", event:"Indian credit bureau breach — CIBIL records",scale:"6M"   },
+  { year:"2021", event:"Air India PII leak — passport & card data",  scale:"4.5M" },
+  { year:"2023", event:"ICMR COVID data sold on dark web forums",    scale:"815M" },
+  { year:"2024", event:"BSNL subscriber database auctioned online",  scale:"2.9M" },
+  { year:"2025", event:"UPI fraud ring — synthetic identity attack",  scale:"120K" },
 ];
 
 /* ─── Unified Result Modal ─── */
@@ -471,115 +479,94 @@ export default function HomePage() {
       {/* ── BOTTOM CARDS ── */}
       <motion.div variants={fUp} className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 max-w-4xl w-full mx-auto">
 
-        {/* Global Threat Feed */}
+        {/* Threat Categories — cool hexagonal/grid style */}
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
             <div className="flex items-center gap-2">
               <Activity size={14} className="text-rose-500"/>
-              <span className="font-bold text-sm" style={{color:"var(--text-primary)"}}>Global Threat Feed</span>
+              <span className="font-bold text-sm" style={{color:"var(--text-primary)"}}>Active Threat Matrix</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 blink"/>
               <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#f43f5e"}}>Live</span>
             </div>
           </div>
-          {LIVE_THREATS.map((t,i)=>(
-            <div key={t.id} className="flex items-center gap-3 px-4 py-2.5"
-              style={{borderBottom:i<LIVE_THREATS.length-1?"1px solid var(--divider)":"none"}}>
-              <span className="text-base shrink-0">{t.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold truncate" style={{color:"var(--text-primary)"}}>{t.name}</p>
-                <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-muted)"}}>{t.region} · {t.target}</p>
-              </div>
-              <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${SEV_BADGE[t.sev]}`} style={{fontFamily:"IBM Plex Mono"}}>{t.sev}</span>
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)"}}>{t.time}</span>
-              </div>
-            </div>
-          ))}
+          <div className="grid grid-cols-2 gap-2 p-3">
+            {THREAT_CATEGORIES.map((cat,i)=>(
+              <motion.div key={i} whileTap={{scale:.97}}
+                className="relative overflow-hidden rounded-xl p-3 cursor-default"
+                style={{background:`linear-gradient(135deg,${cat.color}10,${cat.color}05)`,border:`1px solid ${cat.color}25`}}>
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-xl">{cat.icon}</span>
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md"
+                    style={{fontFamily:"IBM Plex Mono",color:cat.color,background:`${cat.color}18`,border:`1px solid ${cat.color}30`}}>{cat.count}</span>
+                </div>
+                <div className="text-xs font-bold leading-tight" style={{color:"var(--text-primary)"}}>{cat.label}</div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 rounded-full opacity-[0.06]"
+                  style={{background:cat.color,transform:"translate(30%,30%)"}}/>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
-        {/* Security Tips */}
+        {/* India Breach Timeline */}
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
             <div className="flex items-center gap-2">
-              <Shield size={14} style={{color:"var(--accent)"}}/>
-              <span className="font-bold text-sm" style={{color:"var(--text-primary)"}}>Security Tips</span>
+              <Globe size={14} style={{color:"#f97316"}}/>
+              <span className="font-bold text-sm" style={{color:"var(--text-primary)"}}>India Breach Timeline</span>
             </div>
-            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#22c55e"}}>Stay Safe</span>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#f97316"}}>2017–2025</span>
           </div>
-          {[
-            { icon:"🔐", tip:"Use a unique strong password for every account.", tag:"Passwords" },
-            { icon:"📱", tip:"Enable 2FA on all banking and email accounts.", tag:"2FA" },
-            { icon:"🔗", tip:"Never click links in unexpected SMS or emails.", tag:"Phishing" },
-            { icon:"📡", tip:"Avoid public Wi-Fi for banking; use a VPN.", tag:"Network" },
-            { icon:"🪪", tip:"Lock your Aadhaar biometrics via mAadhaar app.", tag:"Aadhaar" },
-          ].map((item,i,arr)=>(
-            <div key={i} className="flex items-center gap-3 px-4 py-2.5"
-              style={{borderBottom:i<arr.length-1?"1px solid var(--divider)":"none"}}>
-              <span className="text-base shrink-0">{item.icon}</span>
-              <p className="flex-1 text-xs leading-snug" style={{color:"var(--text-secondary)"}}>{item.tip}</p>
-              <span className="shrink-0 px-1.5 py-0.5 rounded-md text-[9px] font-bold"
-                style={{fontFamily:"IBM Plex Mono",color:"var(--accent)",background:"var(--accent-soft)",border:"1px solid var(--accent-border)"}}>{item.tag}</span>
-            </div>
-          ))}
+          <div className="px-4 py-3 space-y-0">
+            {BREACH_TIMELINE.map((b,i)=>(
+              <div key={i} className="flex gap-3 relative">
+                {/* vertical line */}
+                {i < BREACH_TIMELINE.length-1 && (
+                  <div className="absolute left-[19px] top-7 w-px" style={{height:"calc(100% - 4px)",background:"var(--divider)"}}/>
+                )}
+                {/* dot */}
+                <div className="shrink-0 w-10 flex flex-col items-center pt-1">
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center"
+                    style={{background:i===BREACH_TIMELINE.length-1?"rgba(244,63,94,.2)":"var(--bg-inset)",border:`1.5px solid ${i===BREACH_TIMELINE.length-1?"#f43f5e":"var(--border)"}`}}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{background:i===BREACH_TIMELINE.length-1?"#f43f5e":"var(--text-faint)"}}/>
+                  </div>
+                </div>
+                <div className="flex-1 pb-3 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,color:"var(--accent)"}}>{b.year}</span>
+                    <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#f43f5e",fontWeight:700}}>{b.scale} records</span>
+                  </div>
+                  <p className="text-xs leading-snug" style={{color:"var(--text-secondary)"}}>{b.event}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </motion.div>
 
-      {/* ── DEVELOPER CARD ── */}
+      {/* ── DEVELOPER CARD — minimal ── */}
       <motion.div variants={fUp} className="max-w-4xl w-full mx-auto mb-2">
-        <div className="glass overflow-hidden p-0">
-
-          {/* Dev header */}
-          <div className="px-5 py-4" style={{borderBottom:"1px solid var(--divider)",background:dark?"rgba(99,102,241,.06)":"rgba(99,102,241,.04)"}}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{background:"linear-gradient(135deg,rgba(99,102,241,.25),rgba(56,189,248,.15))",border:"1.5px solid rgba(99,102,241,.35)"}}>
-                  <Code2 size={17} style={{color:"#6366f1"}}/>
-                </div>
-                <div>
-                  <div className="font-bold text-sm" style={{color:"var(--text-primary)"}}>Fardeen Akmal</div>
-                  <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)"}}>Full-Stack Developer · Cybersecurity</div>
-                </div>
+        <div className="glass p-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                style={{background:"linear-gradient(135deg,rgba(99,102,241,.2),rgba(56,189,248,.15))",border:"1px solid rgba(99,102,241,.3)"}}>
+                <Code2 size={14} style={{color:"#6366f1"}}/>
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
-                style={{background:"rgba(34,197,94,.1)",border:"1px solid rgba(34,197,94,.25)"}}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 blink"/>
-                <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"#22c55e",fontWeight:700,letterSpacing:".08em"}}>v2.0 LIVE</span>
+              <div>
+                <span className="text-sm font-bold" style={{color:"var(--text-primary)"}}>Fardeen Akmal</span>
+                <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)",marginLeft:8}}>Developer · ECEBIP PRO v2.0</span>
               </div>
             </div>
-          </div>
-
-          {/* Tech stack */}
-          <div className="px-5 py-4" style={{borderBottom:"1px solid var(--divider)"}}>
-            <div style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>Tech Stack</div>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {TECH_STACK.map(t=>(
-                <div key={t.name} className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl cursor-default transition-all"
-                  style={{background:"var(--bg-inset)",border:"1px solid var(--border)"}}>
-                  <span className="text-xl">{t.icon}</span>
-                  <span className="text-[11px] font-bold" style={{color:"var(--text-primary)"}}>{t.name}</span>
-                  <span style={{fontFamily:"IBM Plex Mono",fontSize:8,color:"var(--text-faint)"}}>{t.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Compliance */}
-          <div className="px-5 py-4">
-            <div style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Compliance &amp; Standards</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {[
-                {label:"DPDP Act 2023",    color:"#38bdf8"},
-                {label:"ISO/IEC 27001",    color:"#22c55e"},
-                {label:"SHA-256 / AES-256",color:"#a78bfa"},
-                {label:"SOC 2 Type II",    color:"#f97316"},
+                {label:"DPDP Act",  color:"#38bdf8"},
+                {label:"ISO 27001", color:"#22c55e"},
+                {label:"AES-256",   color:"#a78bfa"},
+                {label:"SOC 2",     color:"#f97316"},
               ].map(b=>(
-                <span key={b.label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                  style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:b.color,background:`${b.color}12`,border:`1px solid ${b.color}30`,letterSpacing:".04em"}}>
-                  <CheckCircle size={9} style={{color:b.color}}/>{b.label}
-                </span>
+                <span key={b.label} style={{fontFamily:"IBM Plex Mono",fontSize:9,fontWeight:700,color:b.color,background:`${b.color}10`,border:`1px solid ${b.color}25`,padding:"3px 8px",borderRadius:6,letterSpacing:".04em"}}>{b.label}</span>
               ))}
             </div>
           </div>
