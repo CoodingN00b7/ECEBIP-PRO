@@ -31,12 +31,12 @@ const DB_SOURCES = [
   { name:"Numverify",       records:"2.8B",  status:"Online",   latency:"14ms", color:"#f472b6" },
 ];
 const SCAN_TYPES = [
-  { id:"EMAIL",   label:"Email",   icon:Mail,       color:"#0ea5e9", placeholder:"Enter email address",    hint:"e.g. user@gmail.com"     },
-  { id:"PHONE",   label:"Phone",   icon:Smartphone, color:"#10b981", placeholder:"10-digit mobile number", hint:"e.g. 9876543210"          },
-  { id:"AADHAAR", label:"Aadhaar", icon:Shield,     color:"#f97316", placeholder:"12-digit Aadhaar no.",   hint:"e.g. 123456789012"        },
-  { id:"PAN",     label:"PAN",     icon:CreditCard, color:"#eab308", placeholder:"PAN card number",        hint:"e.g. ABCDE1234F"          },
-  { id:"IP",      label:"IP",      icon:Wifi,       color:"#8b5cf6", placeholder:"IPv4 address",           hint:"e.g. 103.21.40.0"         },
-  { id:"URL",     label:"URL",     icon:LinkIcon,   color:"#ec4899", placeholder:"Domain or full URL",     hint:"e.g. https://example.xyz" },
+  { id:"EMAIL",   label:"Email",   icon:Mail,       color:"#0ea5e9", placeholder:"Enter email address",    hint:"e.g. user@domain.com"        },
+  { id:"PHONE",   label:"Phone",   icon:Smartphone, color:"#10b981", placeholder:"10-digit mobile number", hint:"e.g. 98XXXXXXXX"             },
+  { id:"AADHAAR", label:"Aadhaar", icon:Shield,     color:"#f97316", placeholder:"12-digit Aadhaar no.",   hint:"e.g. XXXX XXXX XXXX"         },
+  { id:"PAN",     label:"PAN",     icon:CreditCard, color:"#eab308", placeholder:"PAN card number",        hint:"e.g. ABCDE1234F"             },
+  { id:"IP",      label:"IP",      icon:Wifi,       color:"#8b5cf6", placeholder:"IPv4 address",           hint:"e.g. 192.0.2.0"              },
+  { id:"URL",     label:"URL",     icon:LinkIcon,   color:"#ec4899", placeholder:"Domain or full URL",     hint:"e.g. https://example.xyz"    },
 ];
 const PREVENTION = {
   EMAIL:   ["Monitor financial transactions linked to this email.", "Enable Two-Factor Authentication (2FA) immediately.", "Check connected OAuth apps for unauthorised access.", "Avoid sending OTPs or sensitive data via email replies."],
@@ -68,6 +68,60 @@ const BREACH_TIMELINE = [
   { year:"2024", event:"BSNL subscriber database auctioned online",  scale:"2.9M" },
   { year:"2025", event:"UPI fraud ring — synthetic identity attack",  scale:"120K" },
 ];
+
+/* ─── PII Masking Utility ─── */
+function maskValue(type, val) {
+  if (!val) return val;
+  switch (type) {
+    case "AADHAAR": return "XXXX XXXX " + String(val).slice(-4);
+    case "PHONE":   return String(val).slice(0, 2) + "XXXXXX" + String(val).slice(-2);
+    case "PAN":     return String(val).slice(0, 2) + "XXXXXXX" + String(val).slice(-1);
+    case "EMAIL": {
+      const [local, domain] = String(val).split("@");
+      if (!domain) return val;
+      return local.slice(0, 2) + "****@" + domain;
+    }
+    default: return val;
+  }
+}
+
+/* ─── Quick Action Buttons (used inside ResultModal) ─── */
+function CopyResultButton({ result, ac, acSoft }) {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = () => {
+    const text = [
+      `Scan Type : ${result.scanType}`,
+      `Status    : ${result.status}`,
+      `Severity  : ${result.severityScore ?? "N/A"}`,
+      `Source    : ${result.source ?? "N/A"}`,
+      `Breach    : ${result.breachName ?? "N/A"}`,
+      `Fields    : ${result.compromisedData ?? "None"}`,
+      `Date      : ${result.scanDate ?? new Date().toISOString().split("T")[0]}`,
+    ].join("\n");
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  };
+  return (
+    <motion.button onClick={handleCopy} whileTap={{scale:.93}}
+      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold"
+      style={{background:acSoft+".08)",border:`1px solid ${acSoft+".2)"}`,color:ac,fontFamily:"IBM Plex Mono",fontSize:11}}>
+      {copied ? <CheckCircle size={12}/> : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>}
+      {copied ? "Copied!" : "Copy Report"}
+    </motion.button>
+  );
+}
+
+function ReportFalsePositiveButton({ ac, acSoft }) {
+  const [reported, setReported] = React.useState(false);
+  const handleReport = () => { setReported(true); setTimeout(() => setReported(false), 3000); };
+  return (
+    <motion.button onClick={handleReport} whileTap={{scale:.93}}
+      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold"
+      style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.2)",color:reported?"#22c55e":"#818cf8",fontFamily:"IBM Plex Mono",fontSize:11}}>
+      {reported ? <CheckCircle size={12}/> : <AlertTriangle size={12}/>}
+      {reported ? "Reported — Thank you" : "Report False Positive"}
+    </motion.button>
+  );
+}
 
 /* ─── Unified Result Modal ─── */
 function ResultModal({ result, modal, dark, onClose }) {
@@ -129,7 +183,7 @@ function ResultModal({ result, modal, dark, onClose }) {
                       {modal.safe ? "No Breach Found" : "Breach Detected"}
                     </span>
                   </div>
-                  <div className="font-black text-base truncate max-w-[200px]" style={{color:"var(--text-primary)",letterSpacing:"-.01em"}}>{result.queryId}</div>
+                  <div className="font-black text-base truncate max-w-[200px]" style={{color:"var(--text-primary)",letterSpacing:"-.01em"}}>{maskValue(result.scanType, result.queryId)}</div>
                   <div style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-muted)",marginTop:2}}>{result.scanType} · {modal.scanDate}</div>
                 </div>
               </div>
@@ -198,7 +252,7 @@ function ResultModal({ result, modal, dark, onClose }) {
             </div>
 
             {/* ── RECOMMENDED ACTIONS ── */}
-            <div className="px-5 pt-4 pb-6">
+            <div className="px-5 pt-4 pb-4" style={{borderBottom:`1px solid ${acSoft}.1)`}}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-5 h-5 rounded-lg flex items-center justify-center" style={{background:acSoft+".15)"}}>
                   <Lock size={11} style={{color:ac}}/>
@@ -220,6 +274,12 @@ function ResultModal({ result, modal, dark, onClose }) {
                   </motion.div>
                 ))}
               </div>
+            </div>
+
+            {/* ── QUICK ACTIONS ── */}
+            <div className="px-5 pt-4 pb-6 flex gap-2 flex-wrap">
+              <CopyResultButton result={result} ac={ac} acSoft={acSoft}/>
+              <ReportFalsePositiveButton ac={ac} acSoft={acSoft}/>
             </div>
           </div>
         </motion.div>
@@ -300,7 +360,7 @@ export default function HomePage() {
       if(u&&!u.isGuest&&u.email){
         const k=`search_history_${u.email}`;
         const h=JSON.parse(localStorage.getItem(k)||"[]");
-        localStorage.setItem(k,JSON.stringify([{id:Date.now(),query:q,type,status:fd.status,timestamp:new Date().toISOString(),source:fd.source,breachName:fd.breachName,compromisedData:fd.compromisedData,severityScore:fd.severityScore},...h]));
+        localStorage.setItem(k,JSON.stringify([{id:Date.now(),query:maskValue(type,q),type,status:fd.status,timestamp:new Date().toISOString(),source:fd.source,breachName:fd.breachName,compromisedData:fd.compromisedData,severityScore:fd.severityScore},...h]));
       }
       clearInterval(pi);setProg(100);setPhase("Scan complete.");
       await new Promise(r=>setTimeout(r,500));
