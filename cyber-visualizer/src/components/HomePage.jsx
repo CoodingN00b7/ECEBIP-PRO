@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Clock, Radio, Eye } from "lucide-react";
+import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Radio, Eye } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 
 const GLOBAL_STATS = [
@@ -16,13 +16,6 @@ const LIVE_THREATS = [
   { id:4, name:"Aadhaar Syndicate Portal Leak",   target:"6.9M IDs",            sev:"CRITICAL", region:"India",     time:"22m ago", icon:"💀" },
   { id:5, name:"Smishing Kit — UPI Fraud Ring",   target:"120K Devices",        sev:"MEDIUM",   region:"IN / PK",   time:"35m ago", icon:"🟡" },
   { id:6, name:"BreachForums Credential Dump",    target:"1.1B Passwords",      sev:"CRITICAL", region:"Dark Web",  time:"1h ago",  icon:"💀" },
-];
-const RECENT_SCANS = [
-  { query:"rohit.sharma@hdfc.co.in", type:"EMAIL",  status:"Exposed", ago:"3m ago"  },
-  { query:"192.168.42.11",           type:"IP",     status:"Safe",    ago:"7m ago"  },
-  { query:"9876543210",              type:"PHONE",  status:"Exposed", ago:"12m ago" },
-  { query:"ABCDE1234F",              type:"PAN",    status:"Safe",    ago:"18m ago" },
-  { query:"malware-cdn.xyz",         type:"URL",    status:"Exposed", ago:"24m ago" },
 ];
 const DB_SOURCES = [
   { name:"HaveIBeenPwned",  records:"13.8B", status:"Online",   latency:"12ms", color:"#38bdf8" },
@@ -136,7 +129,7 @@ export default function HomePage() {
   return (
     <>
     <motion.div variants={stagger} initial="hidden" animate="visible"
-      className="flex-1 w-full flex flex-col px-4 sm:px-6 md:px-10 lg:px-14 py-6 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-primary)"}}>
+      className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 lg:px-14 py-4 sm:py-6 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-primary)"}}>
 
       {/* Ticker */}
       <motion.div variants={fUp} className="mb-5 rounded-xl overflow-hidden" style={{background:dark?"rgba(12,22,50,.75)":"rgba(255,241,242,.85)",border:dark?"1px solid rgba(244,63,94,.22)":"1px solid rgba(244,63,94,.25)",backdropFilter:"blur(12px)"}}>
@@ -163,20 +156,20 @@ export default function HomePage() {
       <motion.div variants={fUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {GLOBAL_STATS.map(s=>{const Icon=s.icon;return(
           <motion.div key={s.label} whileHover={{y:-2,scale:1.02}} className="glass flex items-center gap-3.5 p-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${s.color}14`,border:`1px solid ${s.color}30`}}>
-              <Icon size={18} style={{color:s.color}}/>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${s.color}14`,border:`1px solid ${s.color}30`}}>
+              <Icon size={16} style={{color:s.color}}/>
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-lg leading-tight stat-val" style={{fontFamily:"IBM Plex Mono"}}>{s.value}</div>
-              <div className="text-[11px] leading-tight truncate" style={{color:"var(--text-muted)"}}>{s.label}</div>
-              <div className="text-[10px] leading-tight" style={{fontFamily:"IBM Plex Mono",color:s.up?"#22c55e":"#f43f5e"}}>{s.delta}</div>
+              <div className="font-bold text-base sm:text-lg leading-tight stat-val" style={{fontFamily:"IBM Plex Mono"}}>{s.value}</div>
+              <div className="text-[10px] sm:text-[11px] leading-tight truncate" style={{color:"var(--text-muted)"}}>{s.label}</div>
+              <div className="text-[9px] sm:text-[10px] leading-tight" style={{fontFamily:"IBM Plex Mono",color:s.up?"#22c55e":"#f43f5e"}}>{s.delta}</div>
             </div>
           </motion.div>
         );})}
       </motion.div>
 
       {/* ── SCAN PANEL ── */}
-      <motion.div variants={fUp} className="scan-panel max-w-3xl w-full mx-auto p-6 sm:p-8 mb-6">
+      <motion.div variants={fUp} className="scan-panel max-w-3xl w-full mx-auto p-4 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold leading-tight mb-1.5" style={{color:"var(--text-primary)"}}>Breach &amp; Exposure Scanner</h1>
@@ -193,7 +186,7 @@ export default function HomePage() {
         </div>
 
         {/* Type buttons */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 mb-5 sm:mb-6">
           {SCAN_TYPES.map(t=>{const Icon=t.icon;const on=type===t.id;return(
             <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.95}} whileHover={{y:-1}}
               className={`type-btn ${on?"":"type-btn-off"}`}
@@ -303,29 +296,34 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Recent scans */}
+        {/* Cyber Security Tips */}
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-5 py-3.5" style={{borderBottom:"1px solid var(--divider)"}}>
-            <div className="flex items-center gap-2.5"><Clock size={15} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-primary)"}}>Recent Community Scans</span></div>
-            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)"}}>Anonymised</span>
+            <div className="flex items-center gap-2.5"><Shield size={15} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-primary)"}}>Cyber Security Tips</span></div>
+            <span style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"#22c55e"}}>Stay Protected</span>
           </div>
-          {RECENT_SCANS.map((r,i)=>(
-            <motion.div key={i} whileHover={{backgroundColor:dark?"rgba(56,189,248,.03)":"rgba(3,105,161,.03)"}}
-              className="flex items-center gap-3 px-5 py-2.5 transition-colors" style={{borderBottom:i<RECENT_SCANS.length-1?"1px solid var(--divider)":"none"}}>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${r.status==="Exposed"?"bg-rose-500":"bg-emerald-500"}`}/>
-              <span className="flex-1 truncate" style={{fontFamily:"IBM Plex Mono",fontSize:12,color:"var(--text-secondary)"}}>{r.query}</span>
-              <span className="shrink-0 px-2 py-0.5 rounded text-[10px]" style={{fontFamily:"IBM Plex Mono",color:"var(--text-muted)",border:"1px solid var(--border)"}}>{r.type}</span>
-              <span className={`shrink-0 text-[11px] font-semibold ${r.status==="Exposed"?"text-rose-500":"text-emerald-500"}`} style={{fontFamily:"IBM Plex Mono"}}>{r.status}</span>
-              <span className="shrink-0 hidden sm:block text-[10px]" style={{fontFamily:"IBM Plex Mono",color:"var(--text-faint)"}}>{r.ago}</span>
+          {[
+            { icon:"🔐", tip:"Use a unique, strong password for every account — a password manager helps.", tag:"Passwords" },
+            { icon:"📱", tip:"Enable 2-Factor Authentication (2FA) on all banking and email accounts.", tag:"2FA" },
+            { icon:"🔗", tip:"Never click links in unexpected SMS or emails — visit official sites directly.", tag:"Phishing" },
+            { icon:"📡", tip:"Avoid public Wi-Fi for banking. Use a trusted VPN on shared networks.", tag:"Network" },
+            { icon:"🪪", tip:"Lock your Aadhaar biometrics via the mAadhaar app when not in use.", tag:"Aadhaar" },
+          ].map((item,i,arr)=>(
+            <motion.div key={i} whileHover={{backgroundColor:dark?"rgba(56,189,248,.04)":"rgba(3,105,161,.03)"}}
+              className="flex items-start gap-3 px-5 py-3 transition-colors cursor-default" style={{borderBottom:i<arr.length-1?"1px solid var(--divider)":"none"}}>
+              <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
+              <p className="flex-1 text-sm leading-relaxed" style={{color:"var(--text-secondary)"}}>{item.tip}</p>
+              <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold self-start mt-0.5"
+                style={{fontFamily:"IBM Plex Mono",color:"var(--accent)",background:"var(--accent-soft)",border:"1px solid var(--accent-border)"}}>{item.tag}</span>
             </motion.div>
-          ))}
+          ))
         </div>
       </motion.div>
 
       {/* Footer */}
       <motion.div variants={fUp} className="mt-auto pt-4" style={{borderTop:"1px solid var(--divider)"}}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)",letterSpacing:".1em"}}>Team: Fardeen Akmal · Jigisha Naidu · Sushil Nirmal · Suvajit Ghosh</p>
+          <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-faint)",letterSpacing:".1em"}}>Developer: Fardeen Akmal</p>
           <div className="flex flex-wrap gap-2">
             {["DPDP Act 2023","ISO/IEC 27001","SHA-256 / AES-256","SOC 2 Type II"].map(b=>(
               <span key={b} style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-faint)",border:"1px solid var(--border)",borderRadius:8,padding:"3px 8px",letterSpacing:".08em"}}>{b}</span>
