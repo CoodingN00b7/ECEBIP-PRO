@@ -2,10 +2,9 @@ import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Mail, Lock, User, Smartphone, AtSign, ArrowRight, Sun, Moon, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../ThemeContext";
-import { saveUser, getAllUsers } from "../userStorage";
+import { useTheme } from "../ThemeContext.jsx";
+import { saveUser, getAllUsers } from "../userStorage.js";
 
-/* ── InputField OUTSIDE component — prevents remount/input-clear bug ── */
 function Field({ name, placeholder, type="text", icon:Icon, value, onChange, right }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -49,20 +48,18 @@ export default function RegisterPage() {
   const nav = useNavigate();
   const { dark, toggle } = useTheme();
 
-  /* individual state vars — avoids spread/object issues */
-  const [name,    setName]    = useState("");
-  const [uname,   setUname]   = useState("");
-  const [email,   setEmail]   = useState("");
-  const [phone,   setPhone]   = useState("");
-  const [pwd,     setPwd]     = useState("");
-  const [cpwd,    setCpwd]    = useState("");
-  const [terms,   setTerms]   = useState(false);
+  const [name, setName] = useState("");
+  const [uname, setUname] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [cpwd, setCpwd] = useState("");
+  const [terms, setTerms] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
-  const [err,     setErr]     = useState("");
+  const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  /* stable refs — no inline function creation */
   const hName  = useCallback(e=>{setName(e.target.value);  setErr("");}, []);
   const hUname = useCallback(e=>{setUname(e.target.value); setErr("");}, []);
   const hEmail = useCallback(e=>{setEmail(e.target.value); setErr("");}, []);
@@ -105,7 +102,6 @@ export default function RegisterPage() {
 
         <div className="glass-2 rounded-2xl p-6 sm:p-8" style={{border:"1px solid var(--border-glow)"}}>
 
-          {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-6">
             <div className="relative float-anim">
               <div style={{position:"absolute",inset:-6,background:"var(--accent-soft)",borderRadius:"50%",filter:"blur(12px)"}}/>
@@ -117,7 +113,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Success */}
           <AnimatePresence>
             {success&&(
               <motion.div initial={{opacity:0,scale:.9}} animate={{opacity:1,scale:1}} className="text-center py-8">
@@ -133,17 +128,14 @@ export default function RegisterPage() {
           {!success&&(
             <form onSubmit={submit}>
               <div className="space-y-3">
-                {/* Row 1 */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <Field name="name"  placeholder="Full Name" icon={User}       value={name}  onChange={hName}/>
                   <Field name="uname" placeholder="Username"  icon={AtSign}     value={uname} onChange={hUname}/>
                 </div>
-                {/* Row 2 */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <Field name="email" placeholder="Email" icon={Mail}       value={email} onChange={hEmail} type="email"/>
                   <Field name="phone" placeholder="Phone" icon={Smartphone} value={phone} onChange={hPhone} type="tel"/>
                 </div>
-                {/* Password */}
                 <div className="relative">
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{color:"var(--text-4)"}}/>
                   <input type={showPwd?"text":"password"} name="pwd" placeholder="Password" value={pwd} onChange={hPwd} required autoComplete="new-password" className="auth-input w-full" style={{paddingLeft:42,paddingRight:46}}/>
@@ -154,7 +146,6 @@ export default function RegisterPage() {
                 <StrengthBar pwd={pwd}/>
                 <Field name="cpwd" placeholder="Confirm Password" icon={Lock} value={cpwd} onChange={hCpwd} type="password"/>
 
-                {/* Terms */}
                 <label className="flex items-start gap-3 cursor-pointer select-none pt-1">
                   <input type="checkbox" checked={terms} onChange={e=>{setTerms(e.target.checked);setErr("");}}
                     className="mt-0.5 w-4 h-4 rounded cursor-pointer" style={{accentColor:"var(--accent)",flexShrink:0}}/>
