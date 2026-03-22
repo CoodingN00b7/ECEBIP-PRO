@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Smartphone, Shield, CreditCard, Wifi, Link as LinkIcon, X, AlertTriangle, Globe, Calendar, LayoutTemplate, Activity, Database, Crosshair, Lock, Zap, CheckCircle, Filter, Clock, Radio, Eye } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 
-/* ── Data ── */
+
 const STATS=[{label:"Breaches",value:"4.2B+",delta:"+12k today",up:false,icon:Database,color:"#f43f5e"},{label:"Records",value:"18.7B",delta:"+890M/mo",up:true,icon:Eye,color:"#38bdf8"},{label:"Blocked",value:"983K",delta:"+2.1%",up:true,icon:Shield,color:"#22c55e"},{label:"Scanners",value:"247",delta:"6 regions",up:true,icon:Radio,color:"#a78bfa"}];
 const THREATS=[{id:1,name:"MOVEit SQL Injection",target:"348 Orgs",sev:"CRITICAL",region:"Global",time:"Live",icon:"💀"},{id:2,name:"LinkedIn Data Dump",target:"87M Profiles",sev:"HIGH",region:"USA/EU",time:"4m",icon:"🔴"},{id:3,name:"AWS S3 Bucket Leak",target:"2.4 TB",sev:"HIGH",region:"US-East-1",time:"11m",icon:"🟠"},{id:4,name:"Aadhaar Portal Leak",target:"6.9M IDs",sev:"CRITICAL",region:"India",time:"22m",icon:"💀"},{id:5,name:"UPI Fraud Smishing",target:"120K Devices",sev:"MEDIUM",region:"IN/PK",time:"35m",icon:"🟡"},{id:6,name:"BreachForums Dump",target:"1.1B Passwords",sev:"CRITICAL",region:"Dark Web",time:"1h",icon:"💀"}];
 const SCANS=[{q:"rohit@hdfc.co.in",t:"EMAIL",s:"Exposed",a:"3m"},{q:"192.168.42.11",t:"IP",s:"Safe",a:"7m"},{q:"9876543210",t:"PHONE",s:"Exposed",a:"12m"},{q:"ABCDE1234F",t:"PAN",s:"Safe",a:"18m"},{q:"malware-cdn.xyz",t:"URL",s:"Exposed",a:"24m"}];
@@ -87,7 +87,7 @@ export default function HomePage() {
     <motion.div variants={stagger} initial="hidden" animate="visible"
       className="flex-1 w-full flex flex-col px-3 sm:px-6 md:px-10 py-4 overflow-y-auto" style={{scrollbarWidth:"thin",fontFamily:"'DM Sans',sans-serif",color:"var(--text-1)"}}>
 
-      {/* Ticker */}
+    
       <motion.div variants={fUp} className="mb-4 rounded-xl overflow-hidden" style={{background:dark?"rgba(12,22,50,.75)":"rgba(255,241,242,.88)",border:dark?"1px solid rgba(244,63,94,.22)":"1px solid rgba(244,63,94,.25)",backdropFilter:"blur(12px)"}}>
         <div className="flex items-center">
           <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{background:dark?"rgba(244,63,94,.1)":"rgba(254,226,226,.6)",borderRight:dark?"1px solid rgba(244,63,94,.18)":"1px solid rgba(244,63,94,.2)"}}>
@@ -108,7 +108,7 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Stats — 2 cols on mobile, 4 on desktop */}
+      
       <motion.div variants={fUp} className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
         {STATS.map(s=>{const Icon=s.icon; return(
           <motion.div key={s.label} whileTap={{scale:.97}} className="glass flex items-center gap-3 p-3.5 sm:p-4">
@@ -124,10 +124,10 @@ export default function HomePage() {
         );})}
       </motion.div>
 
-      {/* ── SCAN PANEL ── */}
+   
       <motion.div variants={fUp} className="scan-panel w-full mx-auto p-4 sm:p-6 lg:p-8 mb-5" style={{maxWidth:720}}>
 
-        {/* Header + mode toggle */}
+        {
         <div className="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-3 mb-5">
           <div>
             <h1 className="text-lg sm:text-xl font-bold leading-tight mb-1" style={{color:"var(--text-1)"}}>Breach &amp; Exposure Scanner</h1>
@@ -140,7 +140,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Type grid — 3 cols on mobile, 6 on sm+ */}
+        
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-5">
           {TYPES.map(t=>{const Icon=t.icon;const on=type===t.id; return(
             <motion.button key={t.id} onClick={()=>setType(t.id)} whileTap={{scale:.93}}
@@ -199,7 +199,6 @@ export default function HomePage() {
           </motion.div>}
         </AnimatePresence>
 
-        {/* DB strip */}
         <div className="mt-5 pt-4" style={{borderTop:"1px solid var(--divider)"}}>
           <div className="flex items-center justify-between mb-2.5">
             <span style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".12em",textTransform:"uppercase"}}>Connected Sources</span>
@@ -217,9 +216,9 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Two-col feed section — stacked on mobile */}
+     
       <motion.div variants={fUp} className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-        {/* Threat feed */}
+      
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
             <div className="flex items-center gap-2"><Activity size={14} className="text-rose-500"/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Global Threat Feed</span></div>
@@ -240,7 +239,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Recent scans */}
+     
         <div className="glass overflow-hidden p-0">
           <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:"1px solid var(--divider)"}}>
             <div className="flex items-center gap-2"><Clock size={14} style={{color:"var(--accent)"}}/><span className="font-semibold text-sm" style={{color:"var(--text-1)"}}>Recent Scans</span></div>
@@ -257,10 +256,10 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Footer */}
+    
       <motion.div variants={fUp} className="pt-4" style={{borderTop:"1px solid var(--divider)"}}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)",letterSpacing:".08em"}}>Team: Fardeen Akmal · Jigisha Naidu · Sushil Nirmal · Suvajit Ghosh</p>
+          <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)",letterSpacing:".08em"}}>Developer: Fardeen Akmal</p>
           <div className="flex flex-wrap gap-1.5">
             {["DPDP Act 2023","ISO 27001","SOC 2 Type II"].map(b=><span key={b} style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-4)",border:"1px solid var(--border)",borderRadius:6,padding:"2px 7px"}}>{b}</span>)}
           </div>
@@ -268,7 +267,7 @@ export default function HomePage() {
       </motion.div>
     </motion.div>
 
-    {/* ── RESULT MODAL ── */}
+ 
     <AnimatePresence>
       {result&&modal&&(
         <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.2}}
@@ -297,12 +296,12 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Body — scroll */}
+            
             <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{scrollbarWidth:"thin"}}>
-              {/* 3-col on md, stacked on mobile */}
+              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
 
-                {/* Gauge */}
+               
                 <div className="glass-inset p-4 flex flex-col items-center">
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Risk Score</p>
                   <div className="relative w-28 h-[60px] sm:w-32 sm:h-[68px]">
@@ -317,7 +316,7 @@ export default function HomePage() {
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:10,color:"var(--text-4)"}} className="mt-0.5">{modal.score} / 100</p>
                 </div>
 
-                {/* Details */}
+               
                 <div className="glass-inset p-4">
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Details</p>
                   <ul className="space-y-2.5">
@@ -331,7 +330,7 @@ export default function HomePage() {
                   </ul>
                 </div>
 
-                {/* Exposed */}
+             
                 <div className="glass-inset p-4 flex flex-col">
                   <p style={{fontFamily:"IBM Plex Mono",fontSize:9,color:"var(--text-3)",letterSpacing:".15em",textTransform:"uppercase"}} className="mb-3">Exposed Fields</p>
                   <div className="space-y-1.5 overflow-y-auto flex-1" style={{scrollbarWidth:"thin"}}>
@@ -344,7 +343,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Countermeasures */}
+              
               <div className="rounded-xl p-4 sm:p-5" style={{background:modal.safe?"rgba(34,197,94,.04)":"rgba(244,63,94,.04)",border:`1px solid ${modal.safe?"rgba(34,197,94,.12)":"rgba(244,63,94,.12)"}`}}>
                 <div className="flex items-center gap-2 mb-3"><Lock size={13} style={{color:modal.safe?"#22c55e":"#f43f5e"}}/><h3 style={{fontFamily:"IBM Plex Mono",fontSize:10,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:modal.safe?"#22c55e":"#f43f5e"}}>Countermeasures</h3></div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
